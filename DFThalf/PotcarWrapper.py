@@ -49,4 +49,4 @@ def ReadPotcarfile(file, skiprows=None, nrows=None):
     potcar = pd.read_csv(file, nrows=nrows, delim_whitespace=True, skiprows=skiprows, header=None)
     potcar = np.concatenate(potcar.to_numpy())    # convert to numpy and concatenate to single array
 
-    return potcar
+    return potcar, nrows, kmax, skiprows
