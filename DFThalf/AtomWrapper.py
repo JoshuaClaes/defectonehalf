@@ -54,96 +54,6 @@ class AtomWrapper:
         # READ POTENTIAL UNOCCUPIED BANDS ZETA
         pot_zeta = self.ReadPotfile(potfile_zeta, Nrad, skiprows=skiprows)
 
-
-
-    def Add2Potcar(self,Nrad,radfile,potfile_zeta,potfile_xi,CutFuncPar,potcarfile, nk, potcarjump,newpotcarfile):
-        
-        #Function is based on the add2POTCAR-eng.f90 fortran script which add the self energy potential to a potcar
-        #rfile = radius file in fortran
-        #kmax number under local part in POTCAR FILE
-        #:param Nrad: Number of radii (nuk in fortran)
-        #:param potfile_zeta: location atom potential file for unoccupied bands
-        #:param potfile_xi: location atom potential file for occupied bands
-        #:param CutFuncPar: parameters of the cutoff function n CUT amplitude
-        #:param potcarfile: location potcar file
-        #:return: None
-        
-
-        nrows = self.Calcnrows(radfile)
-        # READ RADII
-        radii = self.ReadPotfile(radfile,nrows=nrows, skiprows=1)
-
-        # READ POTENTIAL OCCUPIED BAND XI
-        skiprows = int( np.ceil(Nrad/4) + 3)    # skip all rows of radii + head of radii (size = 1)
-                                                # + head of potential (size = 2)
-        pot_xi = self.ReadPotfile(potfile_xi, nrows=nrows, skiprows=skiprows)
-
-        # READ POTENTIAL UNOCCUPIED BANDS ZETA
-        pot_zeta = self.ReadPotfile(potfile_zeta, nrows=nrows, skiprows=skiprows)
-
-        # CALCULATE SELF ENERGY POTENTIAL
-        # We use V_zeta - V_xi following the paper of Lucatto et. al. about DFT-1/2 and defects
-        # Because Vs(occupied) = Vx(f0) - Vx(f0-xi) and Vs(unoccupied) = -[ Vx(f0) - Vx(f0-zeta)]
-        # resulting in Vs = Vs(occupied) - Vs(unoccupied) = Vs(f0-zeta) - Vs(f0-xi) = V_zeta - V_xi
-        # This means we can do both the valence band correction where zeta gets the role of the fully occupied atom
-        # and xi is the removed fraction of bulk atoms. And ofcourse the defect correction.
-        alpha   = 13.605803
-        beta    = 0.52917706
-        n       = CutFuncPar[0]
-        CUT     = CutFuncPar[1]
-        Vs      = 4.0*np.pi*alpha*(beta**3) * ( 1.0 - (radii/CUT)**n )**3 *  (pot_xi - pot_zeta)
-        Vs      = Vs *  (radii < CUT)
-
-        # ADD SELF ENERGY POTENTIAL TO POTCAR FILE
-        kmax = float( linecache.getline(potcarfile,potcarjump) ) # read kmax
-        potcar,_,_,_ = PotcarWrapper.ReadPotcarfile(potcarfile,potcarjump, round(nk/5))  # read local part op potcar
-
-        # add self energy
-        ca = 0.0
-        newpotcar = potcar.copy()
-        for i in range(nk):
-            ca = ca + kmax/nk
-            newpotcar[i] = newpotcar[i] + self.Add2PotcarFourier(beta*ca,Nrad,radii,Vs,CUT,0.0,0.0,0.0)/(beta*ca)
-
-
-        # MAKE NEW POTCAR
-        nrows = int(np.ceil(nk / 5))
-        lineformat = ff.FortranRecordWriter('(5e16.8)')
-        with open(potcarfile,'r') as pfile:
-            npfile = open(newpotcarfile,'x') # new potcar file
-            # copy potcar until local part
-            for i in range(potcarjump):
-                npfile.write(pfile.readline())
-            # place new local part
-            for i in range(nrows):
-                for j in range(5):
-                    line = lineformat.write([newpotcar[5*i + j]])
-                    npfile.write( line )
-                npfile.write('\n')
-
-        with open(potcarfile,'r') as pfile:
-            # copy the rest
-            skiprows = nrows + potcarjump -1
-            for i,line in enumerate(pfile):
-                if i > skiprows:
-                    npfile.write(line)
-            npfile.close()
-
-        return radii, pot_xi, pot_zeta, Vs, newpotcar
-    
-   
-    def ReadRadii(self,file,nval):
-        # special case of ReadPotfile maybe we don't need a seperate function
-        nrows = np.ceil(nval/4)
-        radii = pd.read_csv(file, nrows=nrows, delim_whitespace=True, skiprows=1, header=None)
-        radii = np.concatenate(radii.to_numpy())    # convert to numpy and concatenate to single array
-        radii = radii[~np.isnan(radii)]             # Remove Nan element from array. These elements appear when the last
-                                                    # line in the potential file does not consist of 4 numbers
-        if radii.shape[0] != nval:
-            raise Exception('An unexpected amount of NaN were removed while reading the radii file')
-
-        return radii
-
     def ReadPotfile(self,file,nrows=None,nval=None,skiprows=0):
         """
         Reads and atom potential file
@@ -181,7 +91,7 @@ class AtomWrapper:
                 fourier = fourier + (Vs[i]*np.sin(ca*r) + Vs[i-1]*np.sin(ca*radii[i-1]))*(r-radii[i-1])/2.0
         return fourier
 
-    def  Calcnrows(self,potfile):
+    def Calcnrows(self,potfile):
         with open(potfile) as pfile:
             for i,line in enumerate(pfile):
                 if i ==0:

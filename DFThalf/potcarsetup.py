@@ -35,11 +35,6 @@ class potcarsetup:
         self.Vs = np.array([])
         self.Radii = np.array([]) # radii of potvalues
 
-
-    def MakeSweepPotcarfiles(self):
-        # Creates a set of potcarfiles going from Cstart with Cend with steps of Cstep
-        return 0
-
     def CalcSelfEnPot(self,atomname,atom,orb_structure,GSorbs,xi,zeta,nrowspot=None):
         """
         # 1) Creates files structure for running atom.
