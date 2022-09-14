@@ -40,6 +40,7 @@ def ReadPotcarfile(file, skiprows=None, nrows=None):
     :param nrows: number of rows that need to be read. Can be given for debugging or edge cases
     :return: np.array with potcar values
     """
+    kmax = None
     if skiprows==None:
         kmax, skiprows = FindKmax(file)
     if nrows == None:
