@@ -1,9 +1,10 @@
 import numpy as np
 import os
 import json
+import fortranformat as ff
 import AtomWrapper
 import orbital
-from PotcarWrapper import FindKmax
+from PotcarWrapper import FindKmax, ReadPotcarfile
 
 class potcarsetup:
 
@@ -18,7 +19,8 @@ class potcarsetup:
             self.workdir = workdir
         else:
             self.workdir = self.potdir + '/' + workdir
-        # Create working directory if it doeorbitalss not exist
+
+        # Create working directory if it does not exist
         if not (os.path.isdir(self.workdir)):
             os.makedirs(self.workdir)
         # Set Exchange correlation for all electron code
@@ -31,6 +33,7 @@ class potcarsetup:
         self.beta  = 0.52917706 # conversion factor bohr to angstrom
         # self energy
         self.Vs = np.array([])
+        self.Radii = np.array([]) # radii of potvalues
 
 
     def MakeSweepPotcarfiles(self):
@@ -38,44 +41,57 @@ class potcarsetup:
         return 0
 
     def CalcSelfEnPot(self,atomname,atom,orb_structure,GSorbs,xi,zeta,nrowspot=None):
+        """
         # 1) Creates files structure for running atom.
         # 2) Runs ATOM to create in Xi and Zeta folder
         # 3) Calculate self energy potential (without cutoff function)
+        :string atomname: Name/label of the atom. This does not have to be a chemical element. This is mostly used for file names
+        :string atom: chemical element example 'C','N' and 'Cd'
+        :param orb_structure: a list containing [int #core orbitals, #valence orbitals] Example [1,2] first orbitals a core orbitals the last two are valence orbitals
+        :param GSorbs: Orbital object containing the valence orbitals and their ground state occupation.
+        :param xi: List with electron fraction removed from each orbital given in GSorbs for the occupied(valence or defect) band.
+        :param zeta: List with electron fraction removed from each orbital given in GSorbs for the unoccupied(conduction or defect) band.
+        :param nrowspot: Debugging parameter in case we need to manually set nrows
+        :return:
+        """
+
 
         # CREATE DIRECTORY FOR CALCULATION
         atomdir = self.workdir + '/' + atomname
         if not (os.path.isdir(atomdir)):
             os.makedirs(atomdir)
+            # GET DFT-1/2 OCCUPATION
+            DFT12_occupied_orbs = []  # occupied orbitals (valence or defect band) affected by the xi electron fraction
+            DFT12_empty_orbs = []  # empty orbitals (conduction or defect band) affected by zeta electron fraction
+            for i, orb in enumerate(GSorbs):
+                # the use of this orbitals class might be a bit overkill
+                # Xi
+                neworb = orb - orbital.orbital(orb.n, orb.l, xi[i])
+                DFT12_occupied_orbs.append(neworb.as_dict())
+                # Zeta
+                neworb = orb - orbital.orbital(orb.n, orb.l, zeta[i])
+                DFT12_empty_orbs.append(neworb.as_dict())
+
+            # RUN ATOM FOR OCCUPIED BANDS (Xi)
+            os.makedirs(atomdir + '/Xi')
+            self.AW.MakeInputFile(atomdir + '/Xi', atom, orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
+            self.AW.RunATOM(atomdir + '/Xi')
+
+            # RUN ATOM FOR UNOCCUPIED BANDS (Xi)
+            os.makedirs(atomdir + '/Zeta')
+            self.AW.MakeInputFile(atomdir + '/Zeta', atom, orb_structure, DFT12_empty_orbs, EXtype=self.ExCorrAE)
+            self.AW.RunATOM(atomdir + '/Zeta')
         else:
             print('Self energy potentials already calculated!\nTry another atomname or delete this folder!')
-
-        # GET DFT-1/2 OCCUPATION
-        DFT12_occupied_orbs = [] # occupied orbitals (valence or defect band) affected by the xi electron fraction
-        DFT12_empty_orbs    = [] # empty orbitals (conduction or defect band) affected by zeta electron fraction
-        for i, orb in enumerate(GSorbs):
-            # the use of this orbitals class might be a bit overkill
-            # Xi
-            neworb = orb - orbital.orbital(orb.n,orb.l,xi[i])
-            DFT12_occupied_orbs.append(neworb.as_dict())
-            # Zeta
-            neworb = orb - orbital.orbital(orb.n, orb.l, zeta[i])
-            DFT12_empty_orbs.append(neworb.as_dict())
-
-        # RUN ATOM FOR OCCUPIED BANDS (Xi)
-        os.makedirs(atomdir + '/Xi')
-        self.AW.MakeInputFile(atomdir + '/Xi', atom, orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
-        self.AW.RunATOM(atomdir + '/Xi')
-
-        # RUN ATOM FOR UNOCCUPIED BANDS (Xi)
-        os.makedirs(atomdir + '/Zeta')
-        self.AW.MakeInputFile(atomdir + '/Zeta', atom, orb_structure, DFT12_empty_orbs, EXtype=self.ExCorrAE)
-        self.AW.RunATOM(atomdir + '/Zeta')
+            print('Calculation of the self energy potential proceeds with the excisting files!')
 
         # SUBSTRACT
         if nrowspot==None:
-            nrowspot = self.AW.Calcnrows(atomdir + '/Xi/Vtotal1')
-        pot_xi   = self.AW.ReadPotfile(atomdir + '/Xi/Vtotal1',nrows=nrowspot)
-        pot_zeta = self.AW.ReadPotfile(atomdir + '/Xi/Vtotal1',nrows=nrowspot)
+            nrowspot = self.AW.Calcnrows(atomdir + '/Xi/VTOTAL1')
+        self.Radii = self.AW.ReadPotfile(atomdir + '/Xi/VTOTAL1'  , nrows=nrowspot,skiprows=1) # We need to save this for later
+        print(self.Radii)
+        pot_xi     = self.AW.ReadPotfile(atomdir + '/Xi/VTOTAL1'  , nrows=nrowspot,skiprows=nrowspot+3)
+        pot_zeta   = self.AW.ReadPotfile(atomdir + '/Zeta/VTOTAL1', nrows=nrowspot,skiprows=nrowspot+3)
         # We already multiply with these constants to convert from
         # the atom format(Ryd and bohr) to the vasp format (eV and A)
         self.Vs = 4.0*np.pi*self.alpha*(self.beta**3)*(pot_xi - pot_zeta)
@@ -83,12 +99,58 @@ class potcarsetup:
         return self.Vs
 
     def MakePotcar(self,potcarfile,newpotcarfile,CutFuncPar,Cutfunc='DFT-1/2',kmax=None):
+        """
+        Makes DFT-1/2 potcar with the speciefied parameters
+        :param potcarfile:
+        :param newpotcarfile:
+        :param CutFuncPar:
+        :param Cutfunc:
+        :param kmax:
+        :return:
+        """
         # ADD SELF ENERGY POTENTIAL TO POTCAR FILE
-        if isinstance(kmax,None):
+        if kmax == None:
             kmax, potcarjump = FindKmax(potcarfile)
-        potcar = self.ReadPotcarfile(potcarfile, potcarjump, nk)  # read local part op potcar
+        potcar, nrows, _,_ = ReadPotcarfile(potcarfile)  # read local part op potcar
 
+        # Calculate self energy potential x trimming function
+        Cutoff = CutFuncPar['Cutoff']
+        n = CutFuncPar['n']
+        Vs = self.Vs * (self.Radii < Cutoff)
 
+        # add self energy
+        nk = nrows*5 # number of kvalues in potcar file
+        Nrad = np.shape(self.Radii)[0]
+        ca = 0.0
+        newpotcar = potcar.copy()
+        for i in range(nk):
+            ca = ca + kmax / nk
+            newpotcar[i] = newpotcar[i] + self.AW.Add2PotcarFourier(self.beta * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
+                        self.beta * ca)
+
+        # MAKE NEW POTCAR
+        lineformat = ff.FortranRecordWriter('(5e16.8)')
+        with open(potcarfile,'r') as pfile:
+            npfile = open(self.workdir + '/' + newpotcarfile,'x') # new potcar file
+            # copy potcar until local part
+            for i in range(potcarjump):
+                npfile.write(pfile.readline())
+            # place new local part
+            for i in range(nrows):
+                for j in range(5):
+                    line = lineformat.write([newpotcar[5*i + j]])
+                    npfile.write( line )
+                npfile.write('\n')
+
+        with open(potcarfile,'r') as pfile:
+            # copy the rest
+            skiprows = nrows + potcarjump -1
+            for i,line in enumerate(pfile):
+                if i > skiprows:
+                    npfile.write(line)
+            npfile.close()
+
+        return newpotcar
 
 
 
