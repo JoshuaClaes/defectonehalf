@@ -116,7 +116,7 @@ class potcarsetup:
         # Calculate self energy potential x trimming function
         Cutoff = CutFuncPar['Cutoff']
         n = CutFuncPar['n']
-        Vs = self.Vs * (self.Radii < Cutoff)
+        Vs = self.Vs* ( 1.0 - (self.Radii/Cutoff)**n )**3 * (self.Radii < Cutoff) # Apply trimming function
 
         # add self energy
         nk = nrows*5 # number of kvalues in potcar file
