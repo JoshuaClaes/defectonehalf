@@ -93,27 +93,47 @@ class potcarsetup:
 
         return self.Vs
 
-    def MakePotcar(self,potcarfile,newpotcarfile,CutFuncPar,Cutfunc='DFT-1/2',kmax=None):
+    def MakePotcar(self,potcarfile,newpotcarfile,CutFuncPar,Cutfunc='DFT-1/2'):
         """
         Makes DFT-1/2 potcar with the speciefied parameters
-        :param potcarfile:
-        :param newpotcarfile:
-        :param CutFuncPar:
-        :param Cutfunc:
+        :param potcarfile: file location of potcar file
+        :param newpotcarfile: name of new potcar file (potcar files will be created in workdir for now)
+        :param CutFuncPar: dict with parameter cutoff function
+        :param Cutfunc: tag to tell potcar setup which trimming function is used. (currently this does nothing)
         :param kmax:
         :return:
         """
-        # ADD SELF ENERGY POTENTIAL TO POTCAR FILE
-        if kmax == None:
-            kmax, potcarjump = FindKmax(potcarfile)
-        potcar, nrows, _,_ = ReadPotcarfile(potcarfile)  # read local part op potcar
 
-        # Calculate self energy potential x trimming function
+        Cutoff = CutFuncPar['Cutoff']
+        if isinstance(Cutoff,list):
+            for i,Cut in enumerate(Cutoff):
+                newCutFuncPar = {
+                    'Cutoff'    : Cut,
+                    'n'         : CutFuncPar['n']
+                }
+                # recursion would work here as well but this seems safer
+                Vs = self.DefCalcTrimmedVs(newCutFuncPar, Cutfunc)
+                newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, newCutFuncPar['Cutoff'])
+        else:
+            # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
+            Vs = self.DefCalcTrimmedVs(CutFuncPar, Cutfunc)
+
+            # ADD TRIMMED SELF ENERGY POTENTIAL TO POTCAR
+            newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, CutFuncPar['Cutoff'])
+
+
+    def DefCalcTrimmedVs(self,CutFuncPar,Cutfunc='DFT-1/2'):
+        # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
         Cutoff = CutFuncPar['Cutoff']
         n = CutFuncPar['n']
-        Vs = self.Vs* ( 1.0 - (self.Radii/Cutoff)**n )**3 * (self.Radii < Cutoff) # Apply trimming function
+        Vs = self.Vs * (1.0 - (self.Radii / Cutoff) ** n) ** 3 * (self.Radii < Cutoff)  # Apply trimming function
+        return Vs
 
-        # add self energy
+    def AddVs2Potcar(self,Vs,potcarfile,newpotcarfile,Cutoff):
+        # READ POTCAR FILE
+        kmax, potcarjump = FindKmax(potcarfile)
+        potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
+
         nk = nrows*5 # number of kvalues in potcar file
         Nrad = np.shape(self.Radii)[0]
         ca = 0.0
@@ -123,7 +143,7 @@ class potcarsetup:
             newpotcar[i] = newpotcar[i] + self.AW.Add2PotcarFourier(self.beta * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
                         self.beta * ca)
 
-        # MAKE NEW POTCAR
+        # WRITE NEW POTCAR
         lineformat = ff.FortranRecordWriter('(5e16.8)')
         with open(potcarfile,'r') as pfile:
             npfile = open(self.workdir + '/' + newpotcarfile,'x') # new potcar file
@@ -146,8 +166,6 @@ class potcarsetup:
             npfile.close()
 
         return newpotcar
-
-
 
     def RunAEcode(self, dir):
         # run ATOM
