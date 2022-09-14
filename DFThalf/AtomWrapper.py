@@ -54,7 +54,7 @@ class AtomWrapper:
         pot_zeta = self.ReadPotfile(potfile_zeta, Nrad, skiprows=skiprows)
 
 
-    """
+
     def Add2Potcar(self,Nrad,radfile,potfile_zeta,potfile_xi,CutFuncPar,potcarfile, nk, potcarjump,newpotcarfile):
         
         #Function is based on the add2POTCAR-eng.f90 fortran script which add the self energy potential to a potcar
@@ -142,7 +142,7 @@ class AtomWrapper:
             raise Exception('An unexpected amount of NaN were removed while reading the radii file')
 
         return radii
-    """
+
     def ReadPotfile(self,file,nrows=None,nval=None,skiprows=0):
         """
         Reads and atom potential file
@@ -186,4 +186,4 @@ class AtomWrapper:
                 if i ==0:
                     continue
                 elif line[0] != ' ':
-                    return i-2
+                    return i-1
