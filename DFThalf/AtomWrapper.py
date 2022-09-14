@@ -56,7 +56,7 @@ class AtomWrapper:
 
     """
     def Add2Potcar(self,Nrad,radfile,potfile_zeta,potfile_xi,CutFuncPar,potcarfile, nk, potcarjump,newpotcarfile):
-        """
+        
         #Function is based on the add2POTCAR-eng.f90 fortran script which add the self energy potential to a potcar
         #rfile = radius file in fortran
         #kmax number under local part in POTCAR FILE
@@ -66,7 +66,7 @@ class AtomWrapper:
         #:param CutFuncPar: parameters of the cutoff function n CUT amplitude
         #:param potcarfile: location potcar file
         #:return: None
-        """
+        
 
         nrows = self.Calcnrows(radfile)
         # READ RADII
@@ -129,8 +129,8 @@ class AtomWrapper:
             npfile.close()
 
         return radii, pot_xi, pot_zeta, Vs, newpotcar
-    """
-   """
+    
+   
     def ReadRadii(self,file,nval):
         # special case of ReadPotfile maybe we don't need a seperate function
         nrows = np.ceil(nval/4)
@@ -159,17 +159,6 @@ class AtomWrapper:
         pot = pot[~np.isnan(pot)]               # Remove Nan element from array. These elements appear when the last
                                                 # line in the potential file does not consist of 4 numbers
         return pot
-
-    def ReadPotcarfile(self, file, skiprows, nval):
-        nrows = np.ceil(nval / 5) # number of rows which should be read
-        potcar   = pd.read_csv(file, nrows=nrows, delim_whitespace=True, skiprows=skiprows, header=None)
-        potcar = np.concatenate(potcar.to_numpy())    # convert to numpy and concatenate to single array
-        potcar = potcar[~np.isnan(potcar)]            # Remove Nan element from array. These elements appear when the last
-                                                      # line in the potential file does not consist of 4 numbers
-        if potcar.shape[0] != nval:
-            raise Exception('An unexpected amount of NaN were removed while reading the potcar file')
-
-        return potcar
 
     def Add2PotcarFourier(self,ca,nrad,radii,Vs,Cut,inicio,inicial,final):
         # based on the add2POTCAR-eng.f90 fortran script
