@@ -54,18 +54,18 @@ class AtomWrapper:
         pot_zeta = self.ReadPotfile(potfile_zeta, Nrad, skiprows=skiprows)
 
 
-
+    """
     def Add2Potcar(self,Nrad,radfile,potfile_zeta,potfile_xi,CutFuncPar,potcarfile, nk, potcarjump,newpotcarfile):
         """
-        Function is based on the add2POTCAR-eng.f90 fortran script which add the self energy potential to a potcar
-        rfile = radius file in fortran
-        kmax number under local part in POTCAR FILE
-        :param Nrad: Number of radii (nuk in fortran)
-        :param potfile_zeta: location atom potential file for unoccupied bands
-        :param potfile_xi: location atom potential file for occupied bands
-        :param CutFuncPar: parameters of the cutoff function n CUT amplitude
-        :param potcarfile: location potcar file
-        :return: None
+        #Function is based on the add2POTCAR-eng.f90 fortran script which add the self energy potential to a potcar
+        #rfile = radius file in fortran
+        #kmax number under local part in POTCAR FILE
+        #:param Nrad: Number of radii (nuk in fortran)
+        #:param potfile_zeta: location atom potential file for unoccupied bands
+        #:param potfile_xi: location atom potential file for occupied bands
+        #:param CutFuncPar: parameters of the cutoff function n CUT amplitude
+        #:param potcarfile: location potcar file
+        #:return: None
         """
 
         nrows = self.Calcnrows(radfile)
@@ -129,7 +129,8 @@ class AtomWrapper:
             npfile.close()
 
         return radii, pot_xi, pot_zeta, Vs, newpotcar
-
+    """
+   """
     def ReadRadii(self,file,nval):
         # special case of ReadPotfile maybe we don't need a seperate function
         nrows = np.ceil(nval/4)
@@ -141,7 +142,7 @@ class AtomWrapper:
             raise Exception('An unexpected amount of NaN were removed while reading the radii file')
 
         return radii
-
+    """
     def ReadPotfile(self,file,nrows=None,nval=None,skiprows=0):
         """
         Reads and atom potential file
