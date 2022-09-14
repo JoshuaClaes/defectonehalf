@@ -78,7 +78,7 @@ class AtomWrapper:
         pot_xi = self.ReadPotfile(potfile_xi, nrows=nrows, skiprows=skiprows)
 
         # READ POTENTIAL UNOCCUPIED BANDS ZETA
-        pot_zeta = self.ReadPotfile(potfile_zeta, Nrad, skiprows=skiprows)
+        pot_zeta = self.ReadPotfile(potfile_zeta, nrows=nrows, skiprows=skiprows)
 
         # CALCULATE SELF ENERGY POTENTIAL
         # We use V_zeta - V_xi following the paper of Lucatto et. al. about DFT-1/2 and defects
@@ -157,9 +157,6 @@ class AtomWrapper:
         pot = np.concatenate(pot.to_numpy())    # convert to numpy and concatenate to single array
         pot = pot[~np.isnan(pot)]               # Remove Nan element from array. These elements appear when the last
                                                 # line in the potential file does not consist of 4 numbers
-        if pot.shape[0] != nval:
-            raise Exception('An unexpected amount of NaN were removed while reading the potential file')
-
         return pot
 
     def ReadPotcarfile(self, file, skiprows, nval):
