@@ -35,11 +35,10 @@ def FindNrows(potcarfile):
 def ReadPotcarfile(file, skiprows=None, nrows=None):
     """
     Read potcar file and return a numpy array with the local part
-    :param self:
-    :param file:
-    :param skiprows:
-    :param nrows:
-    :return:
+    :param file: filename potcar file
+    :param skiprows: number of rows that need to be skipped. Can be given for debugging or edge cases
+    :param nrows: number of rows that need to be read. Can be given for debugging or edge cases
+    :return: np.array with potcar values
     """
     if skiprows==None:
         kmax, skiprows = FindKmax(file)
