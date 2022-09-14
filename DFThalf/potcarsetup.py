@@ -93,32 +93,43 @@ class potcarsetup:
 
         return self.Vs
 
-    def MakePotcar(self,potcarfile,newpotcarfile,CutFuncPar,Cutfunc='DFT-1/2'):
+    def MakePotcar(self, potcarfile, CutFuncPar, Cutfunc='DFT-1/2'):
         """
         Makes DFT-1/2 potcar with the speciefied parameters
         :param potcarfile: file location of potcar file
-        :param newpotcarfile: name of new potcar file (potcar files will be created in workdir for now)
         :param CutFuncPar: dict with parameter cutoff function
         :param Cutfunc: tag to tell potcar setup which trimming function is used. (currently this does nothing)
         :param kmax:
         :return:
         """
+        # MAKE POTCAR DIRECTORY
+        if not (os.path.isdir(self.workdir + '/POTCAR_DFThalf')):
+            os.makedirs(self.workdir + '/POTCAR_DFThalf')
 
         Cutoff = CutFuncPar['Cutoff']
+
         if isinstance(Cutoff,list):
+            # Read potcar such that it only needs to be read once
+            kmax, potcarjump = FindKmax(potcarfile)
+            potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
+
+            # LOOP OVER ALL GIVEN CUTS
             for i,Cut in enumerate(Cutoff):
+                # setup parameters
                 newCutFuncPar = {
                     'Cutoff'    : Cut,
                     'n'         : CutFuncPar['n']
                 }
-                # recursion would work here as well but this seems safer
+                newpotcarfile = self.workdir + '/POTCAR_DFThalf/' + 'POTCAR_' + str(Cut) # newpotcarfile will now be used a the first part of the name
                 Vs = self.DefCalcTrimmedVs(newCutFuncPar, Cutfunc)
-                newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, newCutFuncPar['Cutoff'])
+                newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, newCutFuncPar['Cutoff'],
+                                              kmax=kmax, potcarjump=potcarjump, potcar=potcar, nrows=nrows)
         else:
             # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
             Vs = self.DefCalcTrimmedVs(CutFuncPar, Cutfunc)
 
             # ADD TRIMMED SELF ENERGY POTENTIAL TO POTCAR
+            newpotcarfile = self.workdir + '/POTCAR_DFThalf/' + 'POTCAR_' + str(Cutoff)
             newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, CutFuncPar['Cutoff'])
 
 
@@ -126,13 +137,22 @@ class potcarsetup:
         # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
         Cutoff = CutFuncPar['Cutoff']
         n = CutFuncPar['n']
-        Vs = self.Vs * (1.0 - (self.Radii / Cutoff) ** n) ** 3 * (self.Radii < Cutoff)  # Apply trimming function
+        if Cutoff != 0
+            Vs = self.Vs * (1.0 - (self.Radii / Cutoff) ** n) ** 3 * (self.Radii < Cutoff)  # Apply trimming function
+        else:
+            Vs = np.zeros(self.Vs.shape)
         return Vs
 
-    def AddVs2Potcar(self,Vs,potcarfile,newpotcarfile,Cutoff):
+    def AddVs2Potcar(self,Vs,potcarfile,newpotcarfile,Cutoff,kmax=None,potcarjump=None,potcar=None,nrows=None):
+        # Check if potcar file is already made
+        if os.path.isfile(newpotcarfile):
+            return 0
+
         # READ POTCAR FILE
-        kmax, potcarjump = FindKmax(potcarfile)
-        potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
+        if kmax == None:
+            kmax, potcarjump = FindKmax(potcarfile)
+        if isinstance(potcar, type(None)):
+            potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
 
         nk = nrows*5 # number of kvalues in potcar file
         Nrad = np.shape(self.Radii)[0]
@@ -146,7 +166,7 @@ class potcarsetup:
         # WRITE NEW POTCAR
         lineformat = ff.FortranRecordWriter('(5e16.8)')
         with open(potcarfile,'r') as pfile:
-            npfile = open(self.workdir + '/' + newpotcarfile,'x') # new potcar file
+            npfile = open(newpotcarfile,'x') # new potcar file
             # copy potcar until local part
             for i in range(potcarjump):
                 npfile.write(pfile.readline())
