@@ -4,6 +4,7 @@ import linecache
 import fortranformat as ff
 import pandas as pd
 import numpy as np
+import PotcarWrapper
 
 
 class AtomWrapper:
@@ -95,7 +96,7 @@ class AtomWrapper:
 
         # ADD SELF ENERGY POTENTIAL TO POTCAR FILE
         kmax = float( linecache.getline(potcarfile,potcarjump) ) # read kmax
-        potcar = self.ReadPotcarfile(potcarfile,potcarjump, nk)  # read local part op potcar
+        potcar,_,_,_ = PotcarWrapper.ReadPotcarfile(potcarfile,potcarjump, round(nk/5))  # read local part op potcar
 
         # add self energy
         ca = 0.0
