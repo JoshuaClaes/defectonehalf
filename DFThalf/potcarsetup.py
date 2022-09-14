@@ -137,7 +137,7 @@ class potcarsetup:
         # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
         Cutoff = CutFuncPar['Cutoff']
         n = CutFuncPar['n']
-        if Cutoff != 0
+        if Cutoff != 0:
             Vs = self.Vs * (1.0 - (self.Radii / Cutoff) ** n) ** 3 * (self.Radii < Cutoff)  # Apply trimming function
         else:
             Vs = np.zeros(self.Vs.shape)
