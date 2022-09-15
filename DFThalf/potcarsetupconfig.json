@@ -1,3 +1,5 @@
 {
-  "potdir" : "/mnt/extradata/DFThalf/SelfEnergyPot_Auto/Potentials"
+  "potdir" : "/mnt/extradata/DFThalf/SelfEnergyPot_Auto/Potentials",
+  "ldadir" : "/mnt/extradata/VASP/Pseudopotentials_vasp/POTCAR_DFThalf_package/LDA",
+  "pbedir" : "/mnt/extradata/VASP/Pseudopotentials_vasp/POTCAR_DFThalf_package/PBE"
 }

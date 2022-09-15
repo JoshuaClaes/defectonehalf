@@ -13,6 +13,8 @@ class potcarsetup:
         with open('potcarsetupconfig.json') as json_file:
             config = json.load(json_file)
             self.potdir = config['potdir']
+            self.ldadir = config['ldadir']
+            self.pbedir = config['pbedir']
 
         # Set work directory
         if isfullpath:
@@ -115,6 +117,10 @@ class potcarsetup:
         Cutoff = CutFuncPar['Cutoff']
 
         if isinstance(Cutoff,list):
+            if potcarfile == 'LDA' or potcarfile == 'lda':
+                potcarfile = self.ldadir + '/' + self.atom + '/POTCAR'
+            elif potcarfile == 'PBE' or potcarfile == 'pbe':
+                potcarfile = self.pbedir + '/' + self.atom + '/POTCAR'
             # Read potcar such that it only needs to be read once
             kmax, potcarjump = FindKmax(potcarfile)
             potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
