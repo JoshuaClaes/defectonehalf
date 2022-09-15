@@ -149,8 +149,9 @@ class potcarsetup:
             Vs = np.zeros(self.Vs.shape)
         return Vs
 
-    def AddVs2Potcar(self,Vs,potcarfile,newpotcarfile,Cutoff,kmax=None,potcarjump=None,potcar=None,nrows=None):
+    def AddVs2Potcar(self,Vs,potcarfile,newpotcarfile,Cutoff,kmax=None,potcarjump=None,potcar=None,nrows=None,useFortanmethod=False):
         # Check if potcar file is already made
+        print(newpotcarfile)
         if os.path.isfile(newpotcarfile):
             return 0
 
@@ -161,13 +162,19 @@ class potcarsetup:
             potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
 
         nk = nrows*5 # number of kvalues in potcar file
-        Nrad = np.shape(self.Radii)[0]
-        ca = 0.0
-        newpotcar = potcar.copy()
-        for i in range(nk):
-            ca = ca + kmax / nk
-            newpotcar[i] = newpotcar[i] + self.AW.Add2PotcarFourier(self.beta * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
-                        self.beta * ca)
+        newpotcar = None
+        if useFortanmethod:
+            # older method which mimics fortran code (very slow)
+            Nrad = np.shape(self.Radii)[0]
+            ca = 0.0
+            newpotcar = potcar.copy()
+            for i in range(nk):
+                ca = ca + kmax / nk
+                newpotcar[i] = newpotcar[i] + self.AW.Add2PotcarFourier(self.beta * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
+                            self.beta * ca)
+        else:
+            # new method that  should produce the same result but faster
+            newpotcar = self.Add2PotcarFourier(Vs,potcar,Cutoff,nk,kmax)
 
         # WRITE NEW POTCAR
         lineformat = ff.FortranRecordWriter('(5e16.8)')
@@ -229,3 +236,22 @@ class potcarsetup:
             Efrac.append(ch / norm)
 
         return Efrac
+
+    def Add2PotcarFourier(self,Vs,potcar,Cut,nk,kmax):
+        kp = self.beta * np.linspace(kmax / nk, kmax, nk)
+        newpotcar = potcar.copy()
+        # first element
+        I = np.arange(1, len(self.Radii))
+        for i, k in enumerate(kp):
+            fourier = 0
+            fourier += (Vs[0] * np.sin(k * self.Radii[0])) * (self.Radii[0]) / 2.0
+            # elements with R<cut
+            fourier += np.sum(((Vs[I] * np.sin(k * self.Radii[I]) + Vs[I - 1] * np.sin(k * self.Radii[I - 1])) *
+                               (self.Radii[I] - self.Radii[I - 1])) * (self.Radii[I] < Cut)) / 2.0
+            # elements with R>cut
+            indRcut = np.argmax(self.Radii >= Cut)
+            fourier += (Vs[indRcut] * np.sin(k * self.Radii[indRcut]) * (
+                        Cut - self.Radii[indRcut])) / 2.0  # This is always 0 it seems
+            # update potcar with value or fourier transform
+            newpotcar[i] = newpotcar[i] + fourier / (k)
+        return newpotcar
