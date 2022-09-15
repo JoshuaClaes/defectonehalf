@@ -39,8 +39,6 @@ class AtomWrapper:
     def CalcSelfEnergy(self,radfile, potfile_xi, potfile_zeta,Nrad=None):
         # READ RADII
         radii = self.ReadRadii(radfile, Nrad)
-        # READ RADII
-        radii = self.ReadRadii(radfile, Nrad)
 
         # READ POTENTIAL OCCUPIED BAND XI
         skiprows = int(np.ceil(Nrad / 4) + 3)  # skip all rows of radii + head of radii (size = 1)
