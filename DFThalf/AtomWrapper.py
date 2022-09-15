@@ -1,11 +1,7 @@
 import os
 import json
-import linecache
-import fortranformat as ff
 import pandas as pd
 import numpy as np
-import PotcarWrapper
-
 
 class AtomWrapper:
     def __init__(self):
