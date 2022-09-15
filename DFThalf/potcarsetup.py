@@ -8,7 +8,7 @@ from PotcarWrapper import FindKmax, ReadPotcarfile
 
 class potcarsetup:
 
-    def __init__(self,workdir,ExCorrAE = 'pb' , isfullpath=False):
+    def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'pb' , isfullpath=False):
         # read config file
         with open('potcarsetupconfig.json') as json_file:
             config = json.load(json_file)
@@ -34,8 +34,13 @@ class potcarsetup:
         # self energy
         self.Vs = np.array([])
         self.Radii = np.array([]) # radii of potvalues
+        # Atom properties
+        self.atomname       = atomname
+        self.atom           = atom
+        self.orb_structure  = orb_structure
+        self.GSorbs         = GSorbs
 
-    def CalcSelfEnPot(self,atomname,atom,orb_structure,GSorbs,xi,zeta,nrowspot=None):
+    def CalcSelfEnPot(self,xi,zeta,nrowspot=None):
         """
         # 1) Creates files structure for running atom.
         # 2) Runs ATOM to create in Xi and Zeta folder
@@ -52,13 +57,13 @@ class potcarsetup:
 
 
         # CREATE DIRECTORY FOR CALCULATION
-        atomdir = self.workdir + '/' + atomname
+        atomdir = self.workdir + '/' + self.atomname
         if not (os.path.isdir(atomdir)):
             os.makedirs(atomdir)
             # GET DFT-1/2 OCCUPATION
             DFT12_occupied_orbs = []  # occupied orbitals (valence or defect band) affected by the xi electron fraction
             DFT12_empty_orbs = []  # empty orbitals (conduction or defect band) affected by zeta electron fraction
-            for i, orb in enumerate(GSorbs):
+            for i, orb in enumerate(self.GSorbs):
                 # the use of this orbitals class might be a bit overkill
                 # Xi
                 neworb = orb - orbital.orbital(orb.n, orb.l, xi[i])
@@ -69,12 +74,12 @@ class potcarsetup:
 
             # RUN ATOM FOR OCCUPIED BANDS (Xi)
             os.makedirs(atomdir + '/Xi')
-            self.AW.MakeInputFile(atomdir + '/Xi', atom, orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
+            self.AW.MakeInputFile(atomdir + '/Xi', self.atom, self.orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
             self.AW.RunATOM(atomdir + '/Xi')
 
             # RUN ATOM FOR UNOCCUPIED BANDS (Xi)
             os.makedirs(atomdir + '/Zeta')
-            self.AW.MakeInputFile(atomdir + '/Zeta', atom, orb_structure, DFT12_empty_orbs, EXtype=self.ExCorrAE)
+            self.AW.MakeInputFile(atomdir + '/Zeta', self.atom, self.orb_structure, DFT12_empty_orbs, EXtype=self.ExCorrAE)
             self.AW.RunATOM(atomdir + '/Zeta')
         else:
             print('Self energy potentials already calculated!\nTry another atomname or delete this folder!')
@@ -93,18 +98,19 @@ class potcarsetup:
 
         return self.Vs
 
-    def MakePotcar(self, potcarfile, CutFuncPar, Cutfunc='DFT-1/2'):
+    def MakePotcar(self, potcarfile, CutFuncPar, Cutfunc='DFT-1/2',numdecCut=3):
         """
         Makes DFT-1/2 potcar with the speciefied parameters
         :param potcarfile: file location of potcar file
         :param CutFuncPar: dict with parameter cutoff function
         :param Cutfunc: tag to tell potcar setup which trimming function is used. (currently this does nothing)
-        :param kmax:
+        :param numdecCut: number of decimals for the cutoff. Usually you should not need to touch this.
         :return:
         """
         # MAKE POTCAR DIRECTORY
-        if not (os.path.isdir(self.workdir + '/POTCAR_DFThalf')):
-            os.makedirs(self.workdir + '/POTCAR_DFThalf')
+        potcarfolder = self.workdir + '/' + self.atomname + '/POTCAR_DFThalf'
+        if not (os.path.isdir(potcarfolder)):
+            os.makedirs(potcarfolder)
 
         Cutoff = CutFuncPar['Cutoff']
 
@@ -117,10 +123,10 @@ class potcarsetup:
             for i,Cut in enumerate(Cutoff):
                 # setup parameters
                 newCutFuncPar = {
-                    'Cutoff'    : Cut,
+                    'Cutoff'    : np.round(Cut,numdecCut),
                     'n'         : CutFuncPar['n']
                 }
-                newpotcarfile = self.workdir + '/POTCAR_DFThalf/' + 'POTCAR_' + str(Cut) # newpotcarfile will now be used a the first part of the name
+                newpotcarfile = potcarfolder + '/POTCAR_' + str(np.round(Cut,numdecCut)) # newpotcarfile will now be used a the first part of the name
                 Vs = self.DefCalcTrimmedVs(newCutFuncPar, Cutfunc)
                 newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, newCutFuncPar['Cutoff'],
                                               kmax=kmax, potcarjump=potcarjump, potcar=potcar, nrows=nrows)
@@ -129,7 +135,7 @@ class potcarsetup:
             Vs = self.DefCalcTrimmedVs(CutFuncPar, Cutfunc)
 
             # ADD TRIMMED SELF ENERGY POTENTIAL TO POTCAR
-            newpotcarfile = self.workdir + '/POTCAR_DFThalf/' + 'POTCAR_' + str(Cutoff)
+            newpotcarfile = potcarfolder + '/POTCAR_' + str(np.round(Cutoff,numdecCut))
             newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, CutFuncPar['Cutoff'])
 
 
