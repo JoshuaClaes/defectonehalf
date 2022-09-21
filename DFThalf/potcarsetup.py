@@ -8,7 +8,7 @@ from PotcarWrapper import FindKmax, ReadPotcarfile
 
 class potcarsetup:
 
-    def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'pb' , isfullpath=False):
+    def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'pb' , isfullpath=False, typeCutfunc='DFT-1/2'):
         # read config file
         with open('potcarsetupconfig.json') as json_file:
             config = json.load(json_file)
@@ -36,6 +36,7 @@ class potcarsetup:
         # self energy
         self.Vs = np.array([])
         self.Radii = np.array([]) # radii of potvalues
+        self.typeCutfunc = typeCutfunc
         # Atom properties
         self.atomname       = atomname
         self.atom           = atom
@@ -133,26 +134,29 @@ class potcarsetup:
                     'n'         : CutFuncPar['n']
                 }
                 newpotcarfile = potcarfolder + '/POTCAR_' + str(np.round(Cut,numdecCut)) # newpotcarfile will now be used a the first part of the name
-                Vs = self.DefCalcTrimmedVs(newCutFuncPar, Cutfunc)
+                Vs = self.DefCalcTrimmedVs(newCutFuncPar)
                 newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, newCutFuncPar['Cutoff'],
                                               kmax=kmax, potcarjump=potcarjump, potcar=potcar, nrows=nrows)
         else:
             # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
-            Vs = self.DefCalcTrimmedVs(CutFuncPar, Cutfunc)
+            Vs = self.DefCalcTrimmedVs(CutFuncPar)
 
             # ADD TRIMMED SELF ENERGY POTENTIAL TO POTCAR
             newpotcarfile = potcarfolder + '/POTCAR_' + str(np.round(Cutoff,numdecCut))
             newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, CutFuncPar['Cutoff'])
 
 
-    def DefCalcTrimmedVs(self,CutFuncPar,Cutfunc='DFT-1/2'):
+    def DefCalcTrimmedVs(self,CutFuncPar):
         # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
         Cutoff = CutFuncPar['Cutoff']
         n = CutFuncPar['n']
-        if Cutoff != 0:
-            Vs = self.Vs * (1.0 - (self.Radii / Cutoff) ** n) ** 3 * (self.Radii < Cutoff)  # Apply trimming function
+        if self.typeCutfunc == 'DFT-1/2':
+            if Cutoff != 0:
+                Vs = self.Vs * (1.0 - (self.Radii / Cutoff) ** n) ** 3 * (self.Radii < Cutoff)  # Apply trimming function
+            else:
+                Vs = np.zeros(self.Vs.shape)
         else:
-            Vs = np.zeros(self.Vs.shape)
+            raise Exception('Unknown Cutoff function type was used.')
         return Vs
 
     def AddVs2Potcar(self,Vs,potcarfile,newpotcarfile,Cutoff,kmax=None,potcarjump=None,potcar=None,nrows=None,useFortanmethod=False):

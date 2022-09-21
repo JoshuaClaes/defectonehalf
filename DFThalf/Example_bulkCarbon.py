@@ -5,12 +5,12 @@ import numpy as np
 #############################################
 # Bulk V(2s,2p)-V(1.75s,1.75p)
 #############################################
-workdir ='Examples/LDA/Cbulk'   # folder in which calculation will be done
-atomname= 'Cbulk_sp0.25'        # label of the atom
-atom= 'C'                       # Atom symbol
-orbitals= [1, 2]                # number of core and valence eletrons
-GSorb = [orbital.orbital(n=2,l=0,occ=2.00), orbital.orbital(n=2,l=1,occ=2.00)] # Ground state orbitals
-EXtype = 'pb'                   # exchange correlation used in atom (ca=lda, pb=pbe)
+workdir  ='Examples/LDA/Cbulk'   # folder in which calculation will be done
+atomname = 'Cbulk_sp0.25'        # label of the atom
+atom     = 'C'                       # Atom symbol
+orbitals = [1, 2]                # number of core and valence eletrons
+GSorb    = [orbital.orbital(n=2,l=0,occ=2.00), orbital.orbital(n=2,l=1,occ=2.00)] # Ground state orbitals
+EXtype   = 'pb'                   # exchange correlation used in atom (ca=lda, pb=pbe)
 Cbulk_ps = ps.potcarsetup(workdir,atomname,atom,orbitals,GSorb)
 
 # Vs
