@@ -101,7 +101,7 @@ class potcarsetup:
 
         return self.Vs
 
-    def MakePotcar(self, potcarfile, CutFuncPar, Cutfunc='DFT-1/2',numdecCut=3):
+    def MakePotcar(self, potcarfile, CutFuncPar,numdecCut=3):
         """
         Makes DFT-1/2 potcar with the speciefied parameters
         :param potcarfile: file location of potcar file
@@ -117,7 +117,7 @@ class potcarsetup:
 
         Cutoff = CutFuncPar['Cutoff']
 
-        if isinstance(Cutoff,list):
+        if isinstance(Cutoff,list) or isinstance(Cutoff,type(np.array([]))):
             if potcarfile == 'LDA' or potcarfile == 'lda':
                 potcarfile = self.ldadir + '/' + self.atom + '/POTCAR'
             elif potcarfile == 'PBE' or potcarfile == 'pbe':
@@ -133,7 +133,7 @@ class potcarsetup:
                     'Cutoff'    : np.round(Cut,numdecCut),
                     'n'         : CutFuncPar['n']
                 }
-                newpotcarfile = potcarfolder + '/POTCAR_' + str(np.round(Cut,numdecCut)) # newpotcarfile will now be used a the first part of the name
+                newpotcarfile = potcarfolder + '/POTCAR_rc_' + str(np.round(Cut,numdecCut)) + '_n_' +  str(CutFuncPar['n'])# newpotcarfile will now be used a the first part of the name
                 Vs = self.DefCalcTrimmedVs(newCutFuncPar)
                 newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, newCutFuncPar['Cutoff'],
                                               kmax=kmax, potcarjump=potcarjump, potcar=potcar, nrows=nrows)
@@ -161,10 +161,9 @@ class potcarsetup:
 
     def AddVs2Potcar(self,Vs,potcarfile,newpotcarfile,Cutoff,kmax=None,potcarjump=None,potcar=None,nrows=None,useFortanmethod=False):
         # Check if potcar file is already made
-        print(newpotcarfile)
         if os.path.isfile(newpotcarfile):
             return 0
-
+        print(newpotcarfile)
         # READ POTCAR FILE
         if kmax == None:
             kmax, potcarjump = FindKmax(potcarfile)
