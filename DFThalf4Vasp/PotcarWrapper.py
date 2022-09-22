@@ -20,8 +20,9 @@ def FindNrows(potcarfile):
         for i, line in enumerate(pfile):
             if 'local part\n' in line:
                 firstline = i + 2
-            elif 'gradient corrections used for XC\n' in line or 'core charge-density (partial)' in line:
+            elif ('gradient corrections used for XC' in line) or ('core charge-density (partial)' in line):
                 lastline = i
+                break
         if firstline == None:
             raise Exception('Line containing "Local part" was not found in potcar file!')
         elif lastline == None:
