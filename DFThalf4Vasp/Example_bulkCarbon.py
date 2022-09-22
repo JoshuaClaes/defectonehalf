@@ -1,5 +1,5 @@
-import potcarsetup as ps
-import orbital
+import DFThalf4Vasp.potcarsetup as ps
+import DFThalf4Vasp.orbital as orbital
 import numpy as np
 
 #############################################

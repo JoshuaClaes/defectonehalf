@@ -2,11 +2,13 @@ import os
 import json
 import pandas as pd
 import numpy as np
+import DFThalf4Vasp
 
 class AtomWrapper:
     def __init__(self):
         # read config file
-        with open('AtomWrapperConfig.json') as json_file:
+        path = os.path.dirname(DFThalf4Vasp.__file__)
+        with open(path + '/AtomWrapperConfig.json') as json_file:
             self.config = json.load(json_file)
         #print(self.config)
 

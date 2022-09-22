@@ -2,7 +2,6 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-import potcarsetup
 
 class DFThalfCutoff:
     def __init__(self,AtomSelfEnPots,PotcarLoc,unoccband,occband,typevasprun='vasp_std', bulkpotcarloc=''):

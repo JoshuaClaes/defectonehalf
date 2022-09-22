@@ -2,15 +2,17 @@ import numpy as np
 import os
 import json
 import fortranformat as ff
-import AtomWrapper
-import orbital
-from PotcarWrapper import FindKmax, ReadPotcarfile
+import DFThalf4Vasp.AtomWrapper as AtomWrapper
+import DFThalf4Vasp.orbital as orbital
+import DFThalf4Vasp.potcarsetup
+from DFThalf4Vasp.PotcarWrapper import FindKmax, ReadPotcarfile
 
 class potcarsetup:
 
     def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'pb' , isfullpath=False, typeCutfunc='DFT-1/2'):
         # read config file
-        with open('potcarsetupconfig.json') as json_file:
+        path = os.path.dirname(DFThalf4Vasp.__file__)
+        with open(path + '/potcarsetupconfig.json') as json_file:
             config = json.load(json_file)
             self.potdir = config['potdir']
             self.ldadir = config['ldadir']
@@ -92,7 +94,6 @@ class potcarsetup:
         if nrowspot==None:
             nrowspot = self.AW.Calcnrows(atomdir + '/Xi/VTOTAL1')
         self.Radii = self.AW.ReadPotfile(atomdir + '/Xi/VTOTAL1'  , nrows=nrowspot,skiprows=1) # We need to save this for later
-        print(self.Radii)
         pot_xi     = self.AW.ReadPotfile(atomdir + '/Xi/VTOTAL1'  , nrows=nrowspot,skiprows=nrowspot+3)
         pot_zeta   = self.AW.ReadPotfile(atomdir + '/Zeta/VTOTAL1', nrows=nrowspot,skiprows=nrowspot+3)
         # We already multiply with these constants to convert from
