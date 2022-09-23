@@ -15,7 +15,8 @@ class DFThalfCutoff:
         self.occband   = occband    # list [index occupied band  , spin] (up=1, down=2)
 
         # VASP VARIABLES
-        self.typevasprun = typevasprun
+        self.typevasprun   = typevasprun
+        self.foldervasprun = None
 
         # EXTRA VARIABLES
         self.PotcarCommandBegin = bulkpotcarloc
@@ -72,9 +73,10 @@ class DFThalfCutoff:
 
 
     def SingleCutoffSweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars,cutoff_df=None, numdecCut=3):
-        foldervasprun = Vs_potsetup.workdir + '/' +Vs_potsetup.atomname + '/Vasp_run'
-        if not(os.path.isdir(foldervasprun)):
-            os.mkdir(foldervasprun)
+        if self.foldervasprun == None:
+            self.foldervasprun = Vs_potsetup.workdir + '/' + Vs_potsetup.atomname + '/Vasp_run'
+        if not(os.path.isdir(self.foldervasprun)):
+            os.mkdir(self.foldervasprun)
         if isinstance(cutoff_df,type(None)):
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
 
@@ -90,9 +92,9 @@ class DFThalfCutoff:
 
             # Run vasp
             newpotcarfileloc = Vs_potsetup.workdir + '/' +Vs_potsetup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rc,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
-            self.RunVasp(foldervasprun,newpotcarfileloc,unalterpotcars)
+            self.RunVasp(newpotcarfileloc,unalterpotcars)
             # Calculate gap
-            EIGENVALloc = foldervasprun + '/EIGENVAL'
+            EIGENVALloc = self.foldervasprun + '/EIGENVAL'
             Gap = self.CalculateGap(EIGENVALloc)
             # print result
             print('Rc: ', rc, ' Gap: ', np.round(Gap,4), flush=True)
@@ -106,10 +108,10 @@ class DFThalfCutoff:
         Gapmax = cutoff_df.iloc[indmax, 1]
         return cutoff_df,rcmax,Gapmax,indmax,RC
 
-    def RunVasp(self, rundir,currentpotcar,unalteredpotcars):
+    def RunVasp(self,currentpotcar,unalteredpotcars):
         # Go vasp run directory
         oldpath = os.getcwd()
-        os.chdir(rundir)
+        os.chdir(self.foldervasprun)
         # Make POTCAR for vasp run
         self.MakeVaspRunPotcar(currentpotcar,unalteredpotcars)
         # Copy INCAR, KPOINTS and POSCAR file
