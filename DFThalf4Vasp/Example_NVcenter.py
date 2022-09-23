@@ -90,7 +90,7 @@ typevasprun = 'cp ../../EIGENVAL EIGENVAL'
 AtomSelfEnPots = [N_ps, Cdef_ps]
 PotcarLoc = ['/mnt/extradata/DFThalf/SelfEnergyPot_Auto/Potentials/Examples/LDA/NV_fakevasprun/Nitrogen/POTCAR_DFThalf/POTCAR_rc_0.0_n_8',
              '/mnt/extradata/DFThalf/SelfEnergyPot_Auto/Potentials/Examples/LDA/NV_fakevasprun/Cdef/POTCAR_DFThalf/POTCAR_rc_0.0_n_8']
-NVcutoff = Cutoff.DFThalfCutoff(AtomSelfEnPots,PotcarLoc,unoccband,occband,typevasprun=typevasprun, bulkpotcarloc=bulkpotcarloc)
+NVcutoff = Cutoff.DFThalfCutoff(AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun=typevasprun, bulkpotcarloc=bulkpotcarloc)
 
 #
 rb = 0.0
