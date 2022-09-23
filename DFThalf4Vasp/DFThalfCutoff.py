@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 class DFThalfCutoff:
-    def __init__(self,AtomSelfEnPots,PotcarLoc,unoccband,occband,typevasprun='vasp_std', bulkpotcarloc=''):
+    def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std', bulkpotcarloc=''):
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
         self.AtomSelfEnPots = AtomSelfEnPots
