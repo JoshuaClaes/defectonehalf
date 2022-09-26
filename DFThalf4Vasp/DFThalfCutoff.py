@@ -30,7 +30,7 @@ class DFThalfCutoff:
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
             rb_atom = rb
             rf_atom = rf
-            unalteredpotcars = ''.join(self.PotcarLoc[i:-1]) + extraunaltpot
+            unalteredpotcars = ''.join(self.PotcarLoc[i:-1]) + ' ' + extraunaltpot
             for j, nsteps in enumerate(nsteps_list):
                 if j != 0:
                     # Set begin and final radius for next loop
