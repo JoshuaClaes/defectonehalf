@@ -33,8 +33,8 @@ class PotcarSetup:
         self.AW = AtomWrapper.AtomWrapper() # object to run atom calculations
 
         # constants
-        self.alpha = 13.605803  # conversion factor Ryd to eV
-        self.beta  = 0.52917706 # conversion factor bohr to angstrom
+        self.ALPHA = 13.605803  # conversion factor Ryd to eV
+        self.BETA  = 0.52917706 # conversion factor bohr to angstrom
         # self energy
         self.Vs = np.array([])
         self.Radii = np.array([]) # radii of potvalues
@@ -98,7 +98,7 @@ class PotcarSetup:
         pot_zeta   = self.AW.read_pot_file(atomdir + '/Zeta/VTOTAL1', nrows=nrowspot, skiprows=nrowspot + 3)
         # We already multiply with these constants to convert from
         # the atom format(Ryd and bohr) to the vasp format (eV and A)
-        self.Vs = 4.0*np.pi*self.alpha*(self.beta**3)*(pot_xi - pot_zeta)
+        self.Vs = 4.0 * np.pi * self.ALPHA * (self.BETA ** 3) * (pot_xi - pot_zeta)
 
         return self.Vs
 
@@ -180,11 +180,11 @@ class PotcarSetup:
             newpotcar = potcar.copy()
             for i in range(nk):
                 ca = ca + kmax / nk
-                newpotcar[i] = newpotcar[i] + self.AW.add2potcarfourier(self.beta * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
-                            self.beta * ca)
+                newpotcar[i] = newpotcar[i] + self.AW.add2potcarfourier(self.BETA * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
+                        self.BETA * ca)
         else:
             # new method that  should produce the same result but faster
-            newpotcar = self.Add2PotcarFourier(Vs,potcar,Cutoff,nk,kmax)
+            newpotcar = self.add2potcarfourier(Vs, potcar, Cutoff, nk, kmax)
 
         # WRITE NEW POTCAR
         lineformat = ff.FortranRecordWriter('(5e16.8)')
@@ -210,18 +210,18 @@ class PotcarSetup:
 
         return newpotcar
 
-    def RunAEcode(self, dir):
+    def run_ae_code(self, dir):
         # run ATOM
         self.AW.run_atom(dir)
         return None
 
-    def CalcAEpot(self, dir, atom, orb_structure, DFT12_occupied_orbs):
+    def calc_ae_pot(self, dir, atom, orb_structure, DFT12_occupied_orbs):
         # create input fi
         self.AW.make_input_file(dir, atom, orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
         self.AW.run_atom(dir)
 
 
-    def CalcElectronFraction(Achar, mlt=None):
+    def calc_electron_fraction(Achar, mlt=None):
         # This might be better in another function for defect dft-1/2
         """
         This function calculates the fraction of an electron that needs to be
@@ -247,8 +247,8 @@ class PotcarSetup:
 
         return Efrac
 
-    def Add2PotcarFourier(self,Vs,potcar,Cut,nk,kmax):
-        kp = self.beta * np.linspace(kmax / nk, kmax, nk)
+    def add2potcarfourier(self, Vs, potcar, Cut, nk, kmax):
+        kp = self.BETA * np.linspace(kmax / nk, kmax, nk)
         newpotcar = potcar.copy()
         # first element
         I = np.arange(1, len(self.Radii))

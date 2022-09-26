@@ -7,9 +7,9 @@ class DFThalfCutoff:
     def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std', bulkpotcarloc=''):
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
-        self.AtomSelfEnPots = AtomSelfEnPots
-        self.PotcarLoc = PotcarLoc     # list of potcar location corresponding to each atom
-        self.BulkPotcarLoc = bulkpotcarloc # Bulk potcar location, this parameter is only required for defect runs and should remain onchanged for bulk
+        self.atoms_self_En_pots = AtomSelfEnPots
+        self.potcar_loc = PotcarLoc     # list of potcar location corresponding to each atom
+        self.bulk_potcar_loc = bulkpotcarloc # Bulk potcar location, this parameter is only required for defect runs and should remain onchanged for bulk
 
         self.unoccband = unoccband  # list [index unoccupied band, spin] (up=1, down=2)
         self.occband   = occband    # list [index occupied band  , spin] (up=1, down=2)
@@ -19,18 +19,18 @@ class DFThalfCutoff:
         self.foldervasprun = None
 
         # EXTRA VARIABLES
-        self.PotcarCommandBegin = bulkpotcarloc
+        self.potcar_command_begin = bulkpotcarloc
 
 
     def find_cutoff(self, rb, rf, nsteps_list, CutFuncPar, numdecCut=3, ExtraUnalteredPot=''):
         if not(isinstance(nsteps_list,type([])) ):
             nsteps_list = [nsteps_list]
-        for i,Potsetup in enumerate(self.AtomSelfEnPots):
-            print('Starting cutoff optimisation for ' + Potsetup.atomname, flush=True)
+        for i,pot_setup in enumerate(self.atoms_self_En_pots):
+            print('Starting cutoff optimisation for ' + pot_setup.atomname, flush=True)
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
             rb_atom = rb
             rf_atom = rf
-            unalteredpotcars = ''.join(self.PotcarLoc[i:-1]) + ' ' + ExtraUnalteredPot
+            unalteredpotcars = ''.join(self.potcar_loc[i:-1]) + ' ' + ExtraUnalteredPot
             for j, nsteps in enumerate(nsteps_list):
                 if j != 0:
                     # Set begin and final radius for next loop
@@ -43,30 +43,30 @@ class DFThalfCutoff:
                     else:
                         # this should never happen
                         raise Exception('An unexpected maximum cutoff was found')
-                    print('Current maximum gap for ', Potsetup.atomname, ' is ', np.round(Gapmax,4), 'eV and was found at rc', rcmax, ' a0',
+                    print('Current maximum gap for ', pot_setup.atomname, ' is ', np.round(gapmax,4), 'eV and was found at rc', rcmax, ' a0',
                           flush=True)
                 # Run single sweep
                 RC = np.round(np.linspace(rb_atom, rf_atom, nsteps),numdecCut)
-                newCutFuncPar = {
+                new_cut_func_par = {
                                 'Cutoff': RC,
                                 'n': CutFuncPar['n']
                 }
-                potcarfile = self.PotcarLoc[i]
-                newcutoff_df,rcmax , Gapmax,indmax, RC = self.single_cutoff_sweep(Potsetup, potcarfile, newCutFuncPar, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
+                potcarfile = self.potcar_loc[i]
+                newcutoff_df,rcmax , gapmax,indmax, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
 
                 # Update cutoff_df
                 # cutoff_df.append(newcutoff_df)
 
                 # Save dataframe to csv file
-                csvfileloc =  Potsetup.workdir + '/' +Potsetup.atomname + '/CutoffOpt.csv'
+                csvfileloc =  pot_setup.workdir + '/' +pot_setup.atomname + '/CutoffOpt.csv'
                 cutoff_df.to_csv(csvfileloc)
             # print maximal gap
-            print('Maximum gap for ', Potsetup.atomname, ' is ', np.round(Gapmax,4),  'eV and was found at rc', rcmax, ' a0',flush=True)
+            print('Maximum gap for ', pot_setup.atomname, ' is ', np.round(gapmax,4),  'eV and was found at rc', rcmax, ' a0',flush=True)
             # Copy potcar of maximum gap
-            oldpotcaroptloc = Potsetup.workdir + '/' +Potsetup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rcmax,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
-            newpotcaroptloc = Potsetup.workdir + '/' +Potsetup.atomname + '/POTCAR_opt'
+            oldpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rcmax,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
+            newpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_opt'
             shutil.copy(oldpotcaroptloc, newpotcaroptloc)
-            self.PotcarCommandBegin += ' ' + newpotcaroptloc
+            self.potcar_command_begin += ' ' + newpotcaroptloc
 
     def single_cutoff_sweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars, cutoff_df=None, numdecCut=3):
         if self.foldervasprun == None:
@@ -90,12 +90,12 @@ class DFThalfCutoff:
             newpotcarfileloc = Vs_potsetup.workdir + '/' +Vs_potsetup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rc,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
             self.run_vasp(newpotcarfileloc, unalterpotcars)
             # Calculate gap
-            EIGENVALloc = self.foldervasprun + '/EIGENVAL'
-            Gap = self.calculate_gap(EIGENVALloc)
+            eigenval_loc = self.foldervasprun + '/EIGENVAL'
+            gap = self.calculate_gap(eigenval_loc)
             # print result
-            print('Rc: ', rc, ' Gap: ', np.round(Gap,4), flush=True)
+            print('Rc: ', rc, ' Gap: ', np.round(gap,4), flush=True)
             # save result
-            current_cutoff = pd.DataFrame([[rc,Gap]],columns=['Cutoff','Gap'])
+            current_cutoff = pd.DataFrame([[rc,gap]],columns=['Cutoff','Gap'])
             cutoff_df = pd.concat([cutoff_df,current_cutoff])
 
         # Find max
@@ -127,7 +127,7 @@ class DFThalfCutoff:
 
     def make_vasp_run_potcar(self, currentpotcar, unalteredpotcars):
         # Makes the potcar for the actual vasp by concatenating DFT-1/2 potcars
-        Makepotcarcommand = 'cat ' + self.PotcarCommandBegin + ' ' + currentpotcar + ' '  +unalteredpotcars + ' > POTCAR'
+        Makepotcarcommand = 'cat ' + self.potcar_command_begin + ' ' + currentpotcar + ' ' + unalteredpotcars + ' > POTCAR'
         os.system(Makepotcarcommand)
 
     def calculate_gap(self, EIGENVALfileloc):
