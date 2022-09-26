@@ -22,7 +22,7 @@ class DFThalfCutoff:
         self.potcar_command_begin = bulkpotcarloc
 
 
-    def find_cutoff(self, rb, rf, nsteps_list, CutFuncPar, numdecCut=3, ExtraUnalteredPot=''):
+    def find_cutoff(self, rb, rf, nsteps_list, cut_func_par, numdecCut=3, extra_unaltered_pot=''):
         if not(isinstance(nsteps_list,type([])) ):
             nsteps_list = [nsteps_list]
         for i,pot_setup in enumerate(self.atoms_self_En_pots):
@@ -30,7 +30,7 @@ class DFThalfCutoff:
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
             rb_atom = rb
             rf_atom = rf
-            unalteredpotcars = ''.join(self.potcar_loc[i:-1]) + ' ' + ExtraUnalteredPot
+            unalteredpotcars = ''.join(self.potcar_loc[i:-1]) + ' ' + extra_unaltered_pot
             for j, nsteps in enumerate(nsteps_list):
                 if j != 0:
                     # Set begin and final radius for next loop
@@ -49,7 +49,7 @@ class DFThalfCutoff:
                 RC = np.round(np.linspace(rb_atom, rf_atom, nsteps),numdecCut)
                 new_cut_func_par = {
                                 'Cutoff': RC,
-                                'n': CutFuncPar['n']
+                                'n': cut_func_par['n']
                 }
                 potcarfile = self.potcar_loc[i]
                 newcutoff_df,rcmax , gapmax,indmax, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
@@ -63,7 +63,7 @@ class DFThalfCutoff:
             # print maximal gap
             print('Maximum gap for ', pot_setup.atomname, ' is ', np.round(gapmax,4),  'eV and was found at rc', rcmax, ' a0',flush=True)
             # Copy potcar of maximum gap
-            oldpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rcmax,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
+            oldpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rcmax,numdecCut)) + '_n_' +  str(cut_func_par['n'])
             newpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_opt'
             shutil.copy(oldpotcaroptloc, newpotcaroptloc)
             self.potcar_command_begin += ' ' + newpotcaroptloc
