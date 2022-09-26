@@ -68,15 +68,11 @@ class DFThalfCutoff:
             shutil.copy(oldpotcaroptloc, newpotcaroptloc)
             self.PotcarCommandBegin += ' ' + newpotcaroptloc
 
-
-
-
-
     def SingleCutoffSweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars,cutoff_df=None, numdecCut=3):
         if self.foldervasprun == None:
             self.foldervasprun = Vs_potsetup.workdir + '/' + Vs_potsetup.atomname + '/Vasp_run'
         if not(os.path.isdir(self.foldervasprun)):
-            os.mkdir(self.foldervasprun)
+            os.makedirs(self.foldervasprun)
         if isinstance(cutoff_df,type(None)):
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
 
