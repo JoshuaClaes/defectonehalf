@@ -5,9 +5,9 @@ import fortranformat as ff
 import DFThalf4Vasp.AtomWrapper as AtomWrapper
 import DFThalf4Vasp.orbital as orbital
 import DFThalf4Vasp.potcarsetup
-from DFThalf4Vasp.PotcarWrapper import FindKmax, ReadPotcarfile
+from DFThalf4Vasp.PotcarWrapper import find_kmax, read_potcar_file
 
-class potcarsetup:
+class PotcarSetup:
 
     def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'pb' , isfullpath=False, typeCutfunc='DFT-1/2'):
         # read config file
@@ -45,7 +45,7 @@ class potcarsetup:
         self.orb_structure  = orb_structure
         self.GSorbs         = GSorbs
 
-    def CalcSelfEnPot(self,xi,zeta,nrowspot=None):
+    def calc_self_En_pot(self, xi, zeta, nrowspot=None):
         """
         # 1) Creates files structure for running atom.
         # 2) Runs ATOM to create in Xi and Zeta folder
@@ -71,38 +71,38 @@ class potcarsetup:
             for i, orb in enumerate(self.GSorbs):
                 # the use of this orbitals class might be a bit overkill
                 # Xi
-                neworb = orb - orbital.orbital(orb.n, orb.l, xi[i])
+                neworb = orb - orbital.Orbital(orb.n, orb.l, xi[i])
                 DFT12_occupied_orbs.append(neworb.as_dict())
                 # Zeta
-                neworb = orb - orbital.orbital(orb.n, orb.l, zeta[i])
+                neworb = orb - orbital.Orbital(orb.n, orb.l, zeta[i])
                 DFT12_empty_orbs.append(neworb.as_dict())
 
             # RUN ATOM FOR OCCUPIED BANDS (Xi)
             os.makedirs(atomdir + '/Xi')
-            self.AW.MakeInputFile(atomdir + '/Xi', self.atom, self.orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
-            self.AW.RunATOM(atomdir + '/Xi')
+            self.AW.make_input_file(atomdir + '/Xi', self.atom, self.orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
+            self.AW.run_atom(atomdir + '/Xi')
 
             # RUN ATOM FOR UNOCCUPIED BANDS (Xi)
             os.makedirs(atomdir + '/Zeta')
-            self.AW.MakeInputFile(atomdir + '/Zeta', self.atom, self.orb_structure, DFT12_empty_orbs, EXtype=self.ExCorrAE)
-            self.AW.RunATOM(atomdir + '/Zeta')
+            self.AW.make_input_file(atomdir + '/Zeta', self.atom, self.orb_structure, DFT12_empty_orbs, EXtype=self.ExCorrAE)
+            self.AW.run_atom(atomdir + '/Zeta')
         else:
             print('Self energy potentials already calculated!\nTry another atomname or delete this folder!')
             print('Calculation of the self energy potential proceeds with the excisting files!')
 
         # SUBSTRACT
         if nrowspot==None:
-            nrowspot = self.AW.Calcnrows(atomdir + '/Xi/VTOTAL1')
-        self.Radii = self.AW.ReadPotfile(atomdir + '/Xi/VTOTAL1'  , nrows=nrowspot,skiprows=1) # We need to save this for later
-        pot_xi     = self.AW.ReadPotfile(atomdir + '/Xi/VTOTAL1'  , nrows=nrowspot,skiprows=nrowspot+3)
-        pot_zeta   = self.AW.ReadPotfile(atomdir + '/Zeta/VTOTAL1', nrows=nrowspot,skiprows=nrowspot+3)
+            nrowspot = self.AW.calc_nrows(atomdir + '/Xi/VTOTAL1')
+        self.Radii = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL1', nrows=nrowspot, skiprows=1) # We need to save this for later
+        pot_xi     = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL1', nrows=nrowspot, skiprows=nrowspot + 3)
+        pot_zeta   = self.AW.read_pot_file(atomdir + '/Zeta/VTOTAL1', nrows=nrowspot, skiprows=nrowspot + 3)
         # We already multiply with these constants to convert from
         # the atom format(Ryd and bohr) to the vasp format (eV and A)
         self.Vs = 4.0*np.pi*self.alpha*(self.beta**3)*(pot_xi - pot_zeta)
 
         return self.Vs
 
-    def MakePotcar(self, potcarfile, CutFuncPar,numdecCut=3):
+    def make_potcar(self, potcarfile, CutFuncPar, numdecCut=3):
         """
         Makes DFT-1/2 potcar with the speciefied parameters
         :param potcarfile: file location of potcar file
@@ -124,8 +124,8 @@ class potcarsetup:
             elif potcarfile == 'PBE' or potcarfile == 'pbe':
                 potcarfile = self.pbedir + '/' + self.atom + '/POTCAR'
             # Read potcar such that it only needs to be read once
-            kmax, potcarjump = FindKmax(potcarfile)
-            potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
+            kmax, potcarjump = find_kmax(potcarfile)
+            potcar, nrows, _, _ = read_potcar_file(potcarfile)  # read local part op potcar
 
             # LOOP OVER ALL GIVEN CUTS
             for i,Cut in enumerate(Cutoff):
@@ -135,19 +135,19 @@ class potcarsetup:
                     'n'         : CutFuncPar['n']
                 }
                 newpotcarfile = potcarfolder + '/POTCAR_rc_' + str(np.round(Cut,numdecCut)) + '_n_' +  str(CutFuncPar['n'])# newpotcarfile will now be used a the first part of the name
-                Vs = self.DefCalcTrimmedVs(newCutFuncPar)
+                Vs = self.calc_trimmed_Vs(newCutFuncPar)
                 newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, newCutFuncPar['Cutoff'],
                                               kmax=kmax, potcarjump=potcarjump, potcar=potcar, nrows=nrows)
         else:
             # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
-            Vs = self.DefCalcTrimmedVs(CutFuncPar)
+            Vs = self.calc_trimmed_Vs(CutFuncPar)
 
             # ADD TRIMMED SELF ENERGY POTENTIAL TO POTCAR
             newpotcarfile = potcarfolder + '/POTCAR_' + str(np.round(Cutoff,numdecCut))
             newpotcar = self.AddVs2Potcar(Vs, potcarfile, newpotcarfile, CutFuncPar['Cutoff'])
 
 
-    def DefCalcTrimmedVs(self,CutFuncPar):
+    def calc_trimmed_Vs(self, CutFuncPar):
         # CONSTRUCT SELF ENERGY POTENTIAL X TRIMMING FUNCTION
         Cutoff = CutFuncPar['Cutoff']
         n = CutFuncPar['n']
@@ -167,9 +167,9 @@ class potcarsetup:
         print(newpotcarfile)
         # READ POTCAR FILE
         if kmax == None:
-            kmax, potcarjump = FindKmax(potcarfile)
+            kmax, potcarjump = find_kmax(potcarfile)
         if isinstance(potcar, type(None)):
-            potcar, nrows, _, _ = ReadPotcarfile(potcarfile)  # read local part op potcar
+            potcar, nrows, _, _ = read_potcar_file(potcarfile)  # read local part op potcar
 
         nk = nrows*5 # number of kvalues in potcar file
         newpotcar = None
@@ -180,7 +180,7 @@ class potcarsetup:
             newpotcar = potcar.copy()
             for i in range(nk):
                 ca = ca + kmax / nk
-                newpotcar[i] = newpotcar[i] + self.AW.Add2PotcarFourier(self.beta * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
+                newpotcar[i] = newpotcar[i] + self.AW.add2potcarfourier(self.beta * ca, Nrad, self.Radii, Vs, Cutoff, 0.0, 0.0, 0.0) / (
                             self.beta * ca)
         else:
             # new method that  should produce the same result but faster
@@ -212,13 +212,13 @@ class potcarsetup:
 
     def RunAEcode(self, dir):
         # run ATOM
-        self.AW.RunATOM(dir)
+        self.AW.run_atom(dir)
         return None
 
     def CalcAEpot(self, dir, atom, orb_structure, DFT12_occupied_orbs):
         # create input fi
-        self.AW.MakeInputFile(dir, atom, orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
-        self.AW.RunATOM(dir)
+        self.AW.make_input_file(dir, atom, orb_structure, DFT12_occupied_orbs, EXtype=self.ExCorrAE)
+        self.AW.run_atom(dir)
 
 
     def CalcElectronFraction(Achar, mlt=None):

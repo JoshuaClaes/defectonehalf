@@ -12,14 +12,14 @@ class AtomWrapper:
             self.config = json.load(json_file)
         #print(self.config)
 
-    def RunATOM(self,dir):
+    def run_atom(self, dir):
         cwd = os.getcwd()
         os.chdir(dir)
         os.system(self.config['AtomEx'])
         os.chdir(cwd)
         return 0
 
-    def MakeInputFile(self,dir,atom,orbitals,occupation,EXtype='ca'):
+    def make_input_file(self, dir, atom, orbitals, occupation, EXtype='ca'):
         """
         Function makes an input file for ATOM
         :string dir: directory for input file
@@ -38,19 +38,19 @@ class AtomWrapper:
             f.write('100 maxit')
         return 0
 
-    def CalcSelfEnergy(self,radfile, potfile_xi, potfile_zeta,Nrad=None):
+    def calc_self_energy(self, radfile, potfile_xi, potfile_zeta, Nrad=None):
         # READ RADII
         radii = self.ReadRadii(radfile, Nrad)
 
         # READ POTENTIAL OCCUPIED BAND XI
         skiprows = int(np.ceil(Nrad / 4) + 3)  # skip all rows of radii + head of radii (size = 1)
         # + head of potential (size = 2)
-        pot_xi = self.ReadPotfile(potfile_xi, Nrad, skiprows=skiprows)
+        pot_xi = self.read_pot_file(potfile_xi, Nrad, skiprows=skiprows)
 
         # READ POTENTIAL UNOCCUPIED BANDS ZETA
-        pot_zeta = self.ReadPotfile(potfile_zeta, Nrad, skiprows=skiprows)
+        pot_zeta = self.read_pot_file(potfile_zeta, Nrad, skiprows=skiprows)
 
-    def ReadPotfile(self,file,nrows=None,nval=None,skiprows=0):
+    def read_pot_file(self, file, nrows=None, nval=None, skiprows=0):
         """
         Reads and atom potential file
         :param file: filename/ location
@@ -67,7 +67,7 @@ class AtomWrapper:
                                                 # line in the potential file does not consist of 4 numbers
         return pot
 
-    def Add2PotcarFourier(self,ca,nrad,radii,Vs,Cut,inicio,inicial,final):
+    def add2potcarfourier(self, ca, nrad, radii, Vs, Cut, inicio, inicial, final):
         # based on the add2POTCAR-eng.f90 fortran script
         # this is quite slow 
         fourier = 0
@@ -87,7 +87,7 @@ class AtomWrapper:
                 fourier = fourier + (Vs[i]*np.sin(ca*r) + Vs[i-1]*np.sin(ca*radii[i-1]))*(r-radii[i-1])/2.0
         return fourier
 
-    def Calcnrows(self,potfile):
+    def calc_nrows(self, potfile):
         with open(potfile) as pfile:
             for i,line in enumerate(pfile):
                 if i ==0:

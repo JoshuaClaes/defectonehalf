@@ -15,14 +15,14 @@ workdir  ='Examples/LDA/NV_fakevasprun'   # folder in which calculation will be 
 atomname = 'Nitrogen'        # label of the atom
 atom     = 'N'                       # Atom symbol
 orbitals = [1, 2]                # number of core and valence eletrons
-GSorb    = [orbital.orbital(n=2,l=0,occ=2.00), orbital.orbital(n=2,l=1,occ=3.00)] # Ground state orbitals
+GSorb    = [orbital.Orbital(n=2, l=0, occ=2.00), orbital.Orbital(n=2, l=1, occ=3.00)] # Ground state orbitals
 EXtype   = 'ca'                   # exchange correlation used in atom (ca=lda, pb=pbe)
-N_ps     = ps.potcarsetup(workdir,atomname,atom,orbitals,GSorb)
+N_ps     = ps.PotcarSetup(workdir, atomname, atom, orbitals, GSorb)
 
 # Vs
 xi   = [0.1,0.2]    # MADE UP XI VALUES
 zeta = [0.25,0.05]  # MADE UP ZETA VALUES
-N_ps.CalcSelfEnPot(xi,zeta)
+N_ps.calc_self_En_pot(xi, zeta)
 
 # Make potcars
 potcarfile = 'lda'
@@ -30,7 +30,7 @@ CutFuncPar= {
     'Cutoff': list(np.linspace(0.0,4.0,41)),
     'n': 8
 }
-N_ps.MakePotcar(potcarfile,CutFuncPar)
+N_ps.make_potcar(potcarfile, CutFuncPar)
 file = open(N_ps.workdir + '/N_ps.PotSetup','wb')
 pickle.dump(N_ps,file)
 file.close()
@@ -42,14 +42,14 @@ workdir  ='Examples/LDA/NV_fakevasprun'   # folder in which calculation will be 
 atomname = 'Cdef'        # label of the atom
 atom     = 'C'                       # Atom symbol
 orbitals = [1, 2]                # number of core and valence eletrons
-GSorb    = [orbital.orbital(n=2,l=0,occ=2.00), orbital.orbital(n=2,l=1,occ=2.00)] # Ground state orbitals
+GSorb    = [orbital.Orbital(n=2, l=0, occ=2.00), orbital.Orbital(n=2, l=1, occ=2.00)] # Ground state orbitals
 EXtype   = 'ca'                   # exchange correlation used in atom (ca=lda, pb=pbe)
-Cdef_ps     = ps.potcarsetup(workdir,atomname,atom,orbitals,GSorb)
+Cdef_ps     = ps.PotcarSetup(workdir, atomname, atom, orbitals, GSorb)
 
 # Vs
 xi   = [0.1,0.2]    # MADE UP XI VALUES
 zeta = [0.25,0.05]  # MADE UP ZETA VALUES
-Cdef_ps.CalcSelfEnPot(xi,zeta)
+Cdef_ps.calc_self_En_pot(xi, zeta)
 
 # Make potcars
 potcarfile = 'lda'
@@ -57,7 +57,7 @@ CutFuncPar= {
     'Cutoff': list(np.linspace(0.0,4.0,41)),
     'n': 8
 }
-Cdef_ps.MakePotcar(potcarfile,CutFuncPar)
+Cdef_ps.make_potcar(potcarfile, CutFuncPar)
 file = open(N_ps.workdir + '/Cdef_ps.PotSetup','wb')
 pickle.dump(N_ps,file)
 file.close()
@@ -100,4 +100,4 @@ CutFuncPar= {
     'Cutoff': list(np.linspace(0.0,4.0,41)),
     'n': 8
 }
-NVcutoff.FindCutoff(rb,rf,nsteps_list,CutFuncPar)
+NVcutoff.find_cutoff(rb, rf, nsteps_list, CutFuncPar)

@@ -1,4 +1,4 @@
-class orbital:
+class Orbital:
     def __init__(self,n,l,occ):
         self.n = n
         self.l = l
@@ -12,7 +12,7 @@ class orbital:
         # return new orbital object with sum of both occupations
         if self.n == other.n and self.l == other.l :
             newocc = self.occ + other.occ
-            return orbital(self.n,self.l,newocc)
+            return Orbital(self.n, self.l, newocc)
         else:
             raise ValueError('Orbitals characters n and l do not match')
 
@@ -21,7 +21,7 @@ class orbital:
         if self.n == other.n and self.l == other.l :
             newocc = self.occ - other.occ
             if newocc >= 0:
-                return orbital(self.n,self.l,newocc)
+                return Orbital(self.n, self.l, newocc)
             else:
                 raise ValueError('Occupation is negative!')
         else:

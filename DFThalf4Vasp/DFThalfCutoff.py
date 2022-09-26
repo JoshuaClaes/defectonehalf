@@ -22,7 +22,7 @@ class DFThalfCutoff:
         self.PotcarCommandBegin = bulkpotcarloc
 
 
-    def FindCutoff(self, rb, rf, nsteps_list, CutFuncPar, numdecCut=3, ExtraUnalteredPot=''):
+    def find_cutoff(self, rb, rf, nsteps_list, CutFuncPar, numdecCut=3, ExtraUnalteredPot=''):
         if not(isinstance(nsteps_list,type([])) ):
             nsteps_list = [nsteps_list]
         for i,Potsetup in enumerate(self.AtomSelfEnPots):
@@ -52,7 +52,7 @@ class DFThalfCutoff:
                                 'n': CutFuncPar['n']
                 }
                 potcarfile = self.PotcarLoc[i]
-                newcutoff_df,rcmax , Gapmax,indmax, RC = self.SingleCutoffSweep(Potsetup,potcarfile, newCutFuncPar, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
+                newcutoff_df,rcmax , Gapmax,indmax, RC = self.single_cutoff_sweep(Potsetup, potcarfile, newCutFuncPar, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
 
                 # Update cutoff_df
                 # cutoff_df.append(newcutoff_df)
@@ -68,7 +68,7 @@ class DFThalfCutoff:
             shutil.copy(oldpotcaroptloc, newpotcaroptloc)
             self.PotcarCommandBegin += ' ' + newpotcaroptloc
 
-    def SingleCutoffSweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars,cutoff_df=None, numdecCut=3):
+    def single_cutoff_sweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars, cutoff_df=None, numdecCut=3):
         if self.foldervasprun == None:
             self.foldervasprun = Vs_potsetup.workdir + '/' + Vs_potsetup.atomname + '/Vasp_run'
         if not(os.path.isdir(self.foldervasprun)):
@@ -79,7 +79,7 @@ class DFThalfCutoff:
         # Get cutoff vector
         RC = CutFuncPar['Cutoff']
         # Make potcars
-        Vs_potsetup.MakePotcar(potcarfile, CutFuncPar)
+        Vs_potsetup.make_potcar(potcarfile, CutFuncPar)
 
         for rc in RC:
             # If the current rc value is already present we will skip it
@@ -88,10 +88,10 @@ class DFThalfCutoff:
 
             # Run vasp
             newpotcarfileloc = Vs_potsetup.workdir + '/' +Vs_potsetup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rc,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
-            self.RunVasp(newpotcarfileloc,unalterpotcars)
+            self.run_vasp(newpotcarfileloc, unalterpotcars)
             # Calculate gap
             EIGENVALloc = self.foldervasprun + '/EIGENVAL'
-            Gap = self.CalculateGap(EIGENVALloc)
+            Gap = self.calculate_gap(EIGENVALloc)
             # print result
             print('Rc: ', rc, ' Gap: ', np.round(Gap,4), flush=True)
             # save result
@@ -104,12 +104,12 @@ class DFThalfCutoff:
         Gapmax = cutoff_df.iloc[indmax, 1]
         return cutoff_df,rcmax,Gapmax,indmax,RC
 
-    def RunVasp(self,currentpotcar,unalteredpotcars):
+    def run_vasp(self, currentpotcar, unalteredpotcars):
         # Go vasp run directory
         oldpath = os.getcwd()
         os.chdir(self.foldervasprun)
         # Make POTCAR for vasp run
-        self.MakeVaspRunPotcar(currentpotcar,unalteredpotcars)
+        self.make_vasp_run_potcar(currentpotcar, unalteredpotcars)
         # Copy INCAR, KPOINTS and POSCAR file
 
         # Run vasp
@@ -125,12 +125,12 @@ class DFThalfCutoff:
         # Go back to original path
         os.chdir(oldpath)
 
-    def MakeVaspRunPotcar(self,currentpotcar,unalteredpotcars):
+    def make_vasp_run_potcar(self, currentpotcar, unalteredpotcars):
         # Makes the potcar for the actual vasp by concatenating DFT-1/2 potcars
         Makepotcarcommand = 'cat ' + self.PotcarCommandBegin + ' ' + currentpotcar + ' '  +unalteredpotcars + ' > POTCAR'
         os.system(Makepotcarcommand)
 
-    def CalculateGap(self,EIGENVALfileloc):
+    def calculate_gap(self, EIGENVALfileloc):
         # spinlb: Spin lowest band (up=1, down=2)
         # spinhb: Spin highest band (up=1, down=2)
 

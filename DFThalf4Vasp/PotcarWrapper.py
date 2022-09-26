@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import linecache
 
-def FindKmax(potcarfile):
+def find_kmax(potcarfile):
     with open(potcarfile) as pfile:
         for i,line in enumerate(pfile):
             if ' local part\n' in line:
@@ -13,7 +13,7 @@ def FindKmax(potcarfile):
     return kmax,linekmax
 
 
-def FindNrows(potcarfile):
+def find_nrows(potcarfile):
     with open(potcarfile) as pfile:
         firstline = None
         lastline = None
@@ -33,7 +33,7 @@ def FindNrows(potcarfile):
     return nrows
 
 
-def ReadPotcarfile(file, skiprows=None, nrows=None):
+def read_potcar_file(file, skiprows=None, nrows=None):
     """
     Read potcar file and return a numpy array with the local part
     :param file: filename potcar file
@@ -43,9 +43,9 @@ def ReadPotcarfile(file, skiprows=None, nrows=None):
     """
     kmax = None
     if skiprows==None:
-        kmax, skiprows = FindKmax(file)
+        kmax, skiprows = find_kmax(file)
     if nrows == None:
-        nrows = FindNrows(file)
+        nrows = find_nrows(file)
 
     potcar = pd.read_csv(file, nrows=nrows, delim_whitespace=True, skiprows=skiprows, header=None)
     potcar = np.concatenate(potcar.to_numpy())    # convert to numpy and concatenate to single array
