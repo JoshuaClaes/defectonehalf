@@ -134,10 +134,10 @@ class DFThalfCutoff:
         # spinlb: Spin lowest band (up=1, down=2)
         # spinhb: Spin highest band (up=1, down=2)
 
-        ilb     = self.unoccband[0] # index lowest band
-        spinlb  = self.unoccband[1] # Spin lowest band (up=1, down=2)
-        ihb     = self.occband[0]   # index highest band
-        spinhb  = self.occband[1]   # Spin highest band (up=1, down=2)
+        ilb     = self.occband[0] # index lowest band
+        spinlb  = self.occband[1] # Spin lowest band (up=1, down=2)
+        ihb     = self.unoccband[0]   # index highest band
+        spinhb  = self.unoccband[1]   # Spin highest band (up=1, down=2)
 
         # Read eigenvalues
         eign = pd.read_csv(EIGENVALfileloc, delim_whitespace=True, skiprows=8, header=None)
