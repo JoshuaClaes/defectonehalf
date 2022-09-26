@@ -22,7 +22,7 @@ class DFThalfCutoff:
         self.PotcarCommandBegin = bulkpotcarloc
 
 
-    def FindCutoff(self,rb,rf,nsteps_list,CutFuncPar, numdecCut=3):
+    def FindCutoff(self,rb,rf,nsteps_list,CutFuncPar, numdecCut=3, extraunaltpot=''):
         if not(isinstance(nsteps_list,type([])) ):
             nsteps_list = [nsteps_list]
         for i,Potsetup in enumerate(self.AtomSelfEnPots):
@@ -30,7 +30,7 @@ class DFThalfCutoff:
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
             rb_atom = rb
             rf_atom = rf
-            unalteredpotcars = ''.join(self.PotcarLoc[i:-1])
+            unalteredpotcars = ''.join(self.PotcarLoc[i:-1]) + extraunaltpot
             for j, nsteps in enumerate(nsteps_list):
                 if j != 0:
                     # Set begin and final radius for next loop
