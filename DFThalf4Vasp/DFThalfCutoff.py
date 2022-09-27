@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 class DFThalfCutoff:
-    def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std', bulkpotcarloc=''):
+    def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std', bulkpotcarloc='',save_eigenval=True ,save_doscar=False):
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
         self.atoms_self_En_pots = AtomSelfEnPots
@@ -20,6 +20,12 @@ class DFThalfCutoff:
 
         # EXTRA VARIABLES
         self.potcar_command_begin = bulkpotcarloc
+        self.save_eigenval = save_eigenval
+        if save_eigenval and not(os.path.isdir('EIGENVALS')):
+            os.makedirs('EIGENVALS') # Make folder for saving eigenvalues
+        self.save_doscar   = save_doscar
+        if save_doscar and not(os.path.isdir('DOSCARS')):
+            os.makedirs('DOSCARS') # Make folder for saving doscars
 
 
     def find_cutoff(self, rb, rf, nsteps_list, cut_func_par, numdecCut=3, extra_unaltered_pot=''):
@@ -97,6 +103,13 @@ class DFThalfCutoff:
             # save result
             current_cutoff = pd.DataFrame([[rc,gap]],columns=['Cutoff','Gap'])
             cutoff_df = pd.concat([cutoff_df,current_cutoff])
+            # Save files
+            if self.save_eigenval:
+                shutil.copy(self.foldervasprun + '/EIGENVAL',
+                            'EIGENVALS/EIGENVAL' + '_rc_' + str(np.round(rc,numdecCut)) + '_n_' +  str(CutFuncPar['n']) )
+            if self.save_doscar:
+                shutil.copy(self.foldervasprun + '/DOSCAR',
+                            'DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
 
         # Find max
         indmax = cutoff_df.iloc[:, 1].idxmax()
