@@ -4,7 +4,9 @@ import numpy as np
 import pandas as pd
 
 class DFThalfCutoff:
-    def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std', bulkpotcarloc='',save_eigenval=True ,save_doscar=False):
+    def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std',
+                 bulkpotcarloc='',save_eigenval=True ,save_doscar=False, run_in_ps_workdir=False,
+                 save_to_workdir=True):
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
         self.atoms_self_En_pots = AtomSelfEnPots
@@ -17,10 +19,13 @@ class DFThalfCutoff:
         # VASP VARIABLES
         self.typevasprun   = typevasprun
         self.foldervasprun = None
+        self.run_in_ps_workdir = run_in_ps_workdir # if true vasp will run in potcarsetup.workdir
 
         # EXTRA VARIABLES
         self.potcar_command_begin = bulkpotcarloc
+        self.save_to_workdir = save_to_workdir
         self.save_eigenval = save_eigenval
+
         if save_eigenval and not(os.path.isdir('EIGENVALS')):
             os.makedirs('EIGENVALS') # Make folder for saving eigenvalues
         self.save_doscar   = save_doscar
@@ -75,7 +80,7 @@ class DFThalfCutoff:
             self.potcar_command_begin += ' ' + newpotcaroptloc
 
     def single_cutoff_sweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars, cutoff_df=None, numdecCut=3):
-        if self.foldervasprun == None:
+        if self.foldervasprun == None or self.run_in_ps_workdir:
             self.foldervasprun = Vs_potsetup.workdir + '/' + Vs_potsetup.atomname + '/Vasp_run'
         if not(os.path.isdir(self.foldervasprun)):
             os.makedirs(self.foldervasprun)
@@ -104,12 +109,7 @@ class DFThalfCutoff:
             current_cutoff = pd.DataFrame([[rc,gap]],columns=['Cutoff','Gap'])
             cutoff_df = pd.concat([cutoff_df,current_cutoff])
             # Save files
-            if self.save_eigenval:
-                shutil.copy(self.foldervasprun + '/EIGENVAL',
-                            'EIGENVALS/EIGENVAL' + '_rc_' + str(np.round(rc,numdecCut)) + '_n_' +  str(CutFuncPar['n']) )
-            if self.save_doscar:
-                shutil.copy(self.foldervasprun + '/DOSCAR',
-                            'DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
+            self.save_vasp_output_files(Vs_potsetup,rc,numdecCut,CutFuncPar)
 
         # Find max
         indmax = cutoff_df.iloc[:, 1].idxmax()
@@ -158,3 +158,17 @@ class DFThalfCutoff:
         Gap = eign.iloc[ihb, spinhb] - eign.iloc[ilb, spinlb];
         return Gap
 
+    def save_vasp_output_files(self,Vs_potsetup,rc,numdecCut,CutFuncPar):
+        if self.save_to_workdir:
+            save_folder = Vs_potsetup.workdir
+        else:
+            save_folder = self.foldervasprun
+        if not os.path.isdir(save_folder):
+            os.makedirs(save_folder)
+
+        if self.save_eigenval:
+            shutil.copy(save_folder + '/EIGENVAL',
+                        'EIGENVALS/EIGENVAL' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
+        if self.save_doscar:
+            shutil.copy(save_folder + '/DOSCAR',
+                        'DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
