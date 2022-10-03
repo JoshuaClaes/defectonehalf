@@ -1,5 +1,5 @@
 # DFThalf4VASP
-A pythonpackage for doing DFT-1/2 calculations with VASP. This tutorial is based on the original tutorial of Ferreira et.al(https://www.gmsn.ita.br/?q=en).
+A pythonpackage for doing DFT-1/2 calculations with VASP. This tutorial is based on the original tutorial of [Ferreira et.al](https://www.gmsn.ita.br/?q=en).
 
 
 ## Badges
