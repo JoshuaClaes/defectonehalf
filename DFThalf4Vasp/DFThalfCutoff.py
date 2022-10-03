@@ -25,12 +25,8 @@ class DFThalfCutoff:
         self.potcar_command_begin = bulkpotcarloc
         self.save_to_workdir = save_to_workdir
         self.save_eigenval = save_eigenval
-
-        if save_eigenval and not(os.path.isdir('EIGENVALS')):
-            os.makedirs('EIGENVALS') # Make folder for saving eigenvalues
         self.save_doscar   = save_doscar
-        if save_doscar and not(os.path.isdir('DOSCARS')):
-            os.makedirs('DOSCARS') # Make folder for saving doscars
+
 
 
     def find_cutoff(self, rb, rf, nsteps_list, cut_func_par, numdecCut=3, extra_unaltered_pot=''):
