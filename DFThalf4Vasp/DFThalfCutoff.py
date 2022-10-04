@@ -151,7 +151,7 @@ class DFThalfCutoff:
         # Read eigenvalues
         eign = pd.read_csv(EIGENVALfileloc, delim_whitespace=True, skiprows=8, header=None)
         # Calculate gap
-        Gap = eign.iloc[ihb, spinhb] - eign.iloc[ilb, spinlb];
+        Gap = eign.iloc[ihb, spinhb] - eign.iloc[ilb, spinlb]
         return Gap
 
     def save_vasp_output_files(self,Vs_potsetup,rc,numdecCut,CutFuncPar):
@@ -163,8 +163,14 @@ class DFThalfCutoff:
             os.makedirs(save_folder)
 
         if self.save_eigenval:
-            shutil.copy(save_folder + '/EIGENVAL',
-                        'EIGENVALS/EIGENVAL' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
+            # Check if folder exist
+            if not os.path.isdir(save_folder+ '/EIGENVALS'):
+                os.makedirs(save_folder+ '/EIGENVALS')
+            # copy file
+            shutil.copy(self.foldervasprun + '/EIGENVAL',
+                        save_folder +'/EIGENVALS/EIGENVAL' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
         if self.save_doscar:
-            shutil.copy(save_folder + '/DOSCAR',
-                        'DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
+            if not os.path.isdir(save_folder + '/DOSCARS'):
+                os.makedirs(save_folder + '/DOSCARS')
+            shutil.copy(self.foldervasprun + '/DOSCAR',
+                        save_folder + '/DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
