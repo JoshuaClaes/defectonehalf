@@ -59,10 +59,7 @@ class DFThalfCutoff:
                                 'n': cut_func_par['n']
                 }
                 potcarfile = self.potcar_loc[i]
-                newcutoff_df,rcmax , gapmax,indmax, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
-
-                # Update cutoff_df
-                # cutoff_df.append(newcutoff_df)
+                cutoff_df, rcmax , gapmax, indmax, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
 
                 # Save dataframe to csv file
                 csvfileloc =  pot_setup.workdir + '/' +pot_setup.atomname + '/CutoffOpt.csv'
@@ -111,7 +108,7 @@ class DFThalfCutoff:
         indmax = cutoff_df.iloc[:, 1].idxmax()
         rcmax  = cutoff_df.iloc[indmax, 0]
         Gapmax = cutoff_df.iloc[indmax, 1]
-        return cutoff_df,rcmax,Gapmax,indmax,RC
+        return cutoff_df, rcmax, Gapmax, indmax, RC
 
     def run_vasp(self, currentpotcar, unalteredpotcars):
         # Go vasp run directory
