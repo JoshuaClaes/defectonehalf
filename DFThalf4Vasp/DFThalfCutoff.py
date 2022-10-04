@@ -120,11 +120,11 @@ class DFThalfCutoff:
 
         # Run vasp
         if self.typevasprun == 'vasp_std' or self.typevasprun =='std':
-            os.system('srun vasp_std')
+            os.system('srun vasp_std >> vasp.out')
         elif self.typevasprun == 'vasp_gam' or self.typevasprun =='gam':
-            os.system('srun vasp_gam')
+            os.system('srun vasp_gam >> vasp.out')
         elif self.typevasprun == 'vasp_ncl' or self.typevasprun =='ncl':
-            os.system('srun vasp_ncl')
+            os.system('srun vasp_ncl >> vasp.out')
         else:
             # incase another type is given we try to run the given string
             os.system(self.typevasprun)
