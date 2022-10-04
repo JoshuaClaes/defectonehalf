@@ -153,7 +153,7 @@ class DFThalfCutoff:
 
     def save_vasp_output_files(self,Vs_potsetup,rc,numdecCut,CutFuncPar):
         if self.save_to_workdir:
-            save_folder = Vs_potsetup.workdir
+            save_folder = Vs_potsetup.workdir + '/' + Vs_potsetup.atomname
         else:
             save_folder = self.foldervasprun
         if not os.path.isdir(save_folder):
