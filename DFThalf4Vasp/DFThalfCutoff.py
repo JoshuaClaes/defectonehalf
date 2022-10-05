@@ -100,7 +100,7 @@ class DFThalfCutoff:
             print('Rc: ', rc, ' Gap: ', np.round(gap,4), flush=True)
             # save result
             current_cutoff = pd.DataFrame([[rc,gap]],columns=['Cutoff','Gap'])
-            cutoff_df = pd.concat([cutoff_df,current_cutoff])
+            cutoff_df = pd.concat([cutoff_df,current_cutoff], ignore_index=True)
             # Save files
             self.save_vasp_output_files(Vs_potsetup,rc,numdecCut,CutFuncPar)
 
@@ -108,6 +108,7 @@ class DFThalfCutoff:
         indmax = cutoff_df.iloc[:, 1].idxmax()
         rcmax  = cutoff_df.iloc[indmax, 0]
         Gapmax = cutoff_df.iloc[indmax, 1]
+
         return cutoff_df, rcmax, Gapmax, indmax, RC
 
     def run_vasp(self, currentpotcar, unalteredpotcars):
