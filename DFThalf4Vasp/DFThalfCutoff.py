@@ -2,11 +2,12 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
+import pymatgen.io.vasp as pmg
 
 class DFThalfCutoff:
     def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std',
                  bulkpotcarloc='',save_eigenval=True ,save_doscar=False, run_in_ps_workdir=False,
-                 save_to_workdir=True):
+                 save_to_workdir=True, find_gap_auto=False):
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
         self.atoms_self_En_pots = AtomSelfEnPots
@@ -15,6 +16,7 @@ class DFThalfCutoff:
 
         self.unoccband = unoccband  # list [index unoccupied band, spin] (up=1, down=2)
         self.occband   = occband    # list [index occupied band  , spin] (up=1, down=2)
+        self.find_gap_auto = find_gap_auto # if this is set to true the band gap will be calculated using pymatgen
 
         # VASP VARIABLES
         self.typevasprun   = typevasprun
@@ -155,6 +157,10 @@ class DFThalfCutoff:
     def calculate_gap(self, EIGENVALfileloc):
         # spinlb: Spin lowest band (up=1, down=2)
         # spinhb: Spin highest band (up=1, down=2)
+        if self.find_gap_auto:
+            eign = pmg.outputs.Eigenval(EIGENVALfileloc)
+            Gap  = eign.eigenvalue_band_properties[0]
+            return Gap
 
         ilb     = self.occband[0] # index lowest band
         spinlb  = self.occband[1] # Spin lowest band (up=1, down=2)
