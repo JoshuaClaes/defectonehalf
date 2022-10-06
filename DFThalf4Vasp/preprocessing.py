@@ -1,13 +1,16 @@
 import numpy as np
 
 def print_band_characters(bandind, atomind, Peign, structure):
-    if not (isinstance(bandind, list)):
-        bandind = [bandind]
+    if not (isinstance(atomind, list)):
+        atomind = [atomind]
     for bi in bandind:
         print('\nBand:',bi)
         print('Orbitals  : \t [s p d]')
+        if not( isinstance(bi,list)):
+            bi = [bi]
         for ia in atomind:
-            print('\t\t', np.average(Peign[0, bandind, ia], 0), structure[ia])
+            #print(Peign[0, bi, ia])
+            print('\t\t', np.average(Peign[0, bi, ia], 0), structure[ia])
 
 
 def calc_electron_fraction(Achar=None, mlt=None, Peign=None, iocc=None,iunocc=None,atominds=None,numdec=2):
