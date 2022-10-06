@@ -72,9 +72,14 @@ def calc_electron_fraction_fullinput(Peign, iocc,iunocc,atominds, mlt=None):
     :return:
     """
 
+    if not(isinstance(iocc,list)):
+        iocc = [iocc]
+    if not(isinstance(iunocc,list)):
+        iunocc = [iunocc]
+
     char_occ   = []
     char_unocc = []
-    for ai in enumerate(atominds):
+    for i, ai in enumerate(atominds):
         co = np.average(Peign[0, iocc  , ai], 0)
         char_occ.append(co)
         cu = np.average(Peign[0, iunocc, ai],0)
