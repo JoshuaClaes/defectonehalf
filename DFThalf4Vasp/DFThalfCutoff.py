@@ -2,7 +2,7 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-import pymatgen.io.vasp as pmg
+import parsevasp
 
 class DFThalfCutoff:
     def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std',
@@ -158,9 +158,8 @@ class DFThalfCutoff:
         # spinlb: Spin lowest band (up=1, down=2)
         # spinhb: Spin highest band (up=1, down=2)
         if self.find_gap_auto:
-            eign = pmg.outputs.Eigenval(EIGENVALfileloc)
-            Gap  = eign.eigenvalue_band_properties[0]
-            return Gap
+            return 0
+
 
         ilb     = self.occband[0] # index lowest band
         spinlb  = self.occband[1] # Spin lowest band (up=1, down=2)
