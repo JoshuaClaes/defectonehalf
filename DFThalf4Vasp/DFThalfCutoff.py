@@ -52,6 +52,8 @@ class DFThalfCutoff:
                     elif rcmax == 0:
                         rb_atom = 0
                         rf_atom = RC[indmax + 1]
+                    elif rcmax == rf_atom:
+                        raise Exception('The maximum gap is found at rc max!\n Increase rcmax to get a proper gap')
                     else:
                         # this should never happen
                         raise Exception('An unexpected maximum cutoff was found')
