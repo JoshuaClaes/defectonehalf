@@ -32,9 +32,14 @@ class DFThalfCutoff:
     def find_cutoff(self, rb, rf, nsteps_list, cut_func_par, numdecCut=3, extra_unaltered_pot=''):
         if not(isinstance(nsteps_list,type([])) ):
             nsteps_list = [nsteps_list]
-        for i,pot_setup in enumerate(self.atoms_self_En_pots):
+        for i, pot_setup in enumerate(self.atoms_self_En_pots):
             print('Starting cutoff optimisation for ' + pot_setup.atomname, flush=True)
-            cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
+            # load dataframe from previous run if it exists
+            csvfileloc = pot_setup.workdir + '/' + pot_setup.atomname + '/CutoffOpt.csv'
+            if os.path.isfile(csvfileloc):
+                cutoff_df = pd.read_csv(csvfileloc)
+            else:
+                cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
             rb_atom = rb
             rf_atom = rf
             unalteredpotcars = ' '.join(self.potcar_loc[(i+1):]) + ' ' + extra_unaltered_pot
@@ -62,7 +67,6 @@ class DFThalfCutoff:
                 cutoff_df, rcmax , gapmax, indmax, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
 
                 # Save dataframe to csv file
-                csvfileloc =  pot_setup.workdir + '/' +pot_setup.atomname + '/CutoffOpt.csv'
                 cutoff_df.to_csv(csvfileloc)
             # print maximal gap
             print('Maximum gap for ', pot_setup.atomname, ' is ', np.round(gapmax,4),  'eV and was found at rc', rcmax, ' a0',flush=True)
