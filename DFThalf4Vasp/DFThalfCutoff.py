@@ -67,7 +67,7 @@ class DFThalfCutoff:
                 cutoff_df, rcmax , gapmax, indmax, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
 
                 # Save dataframe to csv file
-                cutoff_df.to_csv(csvfileloc)
+                cutoff_df.to_csv(csvfileloc,index=False)
             # print maximal gap
             print('Maximum gap for ', pot_setup.atomname, ' is ', np.round(gapmax,4),  'eV and was found at rc', rcmax, ' a0',flush=True)
             # Copy potcar of maximum gap
@@ -77,10 +77,12 @@ class DFThalfCutoff:
             self.potcar_command_begin += ' ' + newpotcaroptloc
 
     def single_cutoff_sweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars, cutoff_df=None, numdecCut=3):
-        if self.foldervasprun == None or self.run_in_ps_workdir:
+        if self.foldervasprun is None or self.run_in_ps_workdir:
             self.foldervasprun = Vs_potsetup.workdir + '/' + Vs_potsetup.atomname + '/Vasp_run'
+
         if not(os.path.isdir(self.foldervasprun)):
             os.makedirs(self.foldervasprun)
+
         if isinstance(cutoff_df,type(None)):
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
 
@@ -108,10 +110,17 @@ class DFThalfCutoff:
             # Save files
             self.save_vasp_output_files(Vs_potsetup,rc,numdecCut,CutFuncPar)
 
+
+        # rc_cutoff_df makes sure the given data frame only contains gaps corresponding to the current RC.
+        # Without this we might find a maximum gap that does not correspond to our RC which will mess up the next step.
+        # This only makes a difference when starting from a previous run
+        rc_cutoff_df = cutoff_df[cutoff_df['Cutoff'].isin(RC)]
+        rc_cutoff_df = rc_cutoff_df.sort_values('Cutoff',axis=0) # sort to maintain the order of RC
+        rc_cutoff_df = rc_cutoff_df.reset_index(drop=True)
         # Find max
-        indmax = cutoff_df.iloc[:, 1].idxmax()
-        rcmax  = cutoff_df.iloc[indmax, 0]
-        Gapmax = cutoff_df.iloc[indmax, 1]
+        indmax = rc_cutoff_df.iloc[:, 1].idxmax()
+        rcmax  = rc_cutoff_df.iloc[indmax, 0]
+        Gapmax = rc_cutoff_df.iloc[indmax, 1]
 
         return cutoff_df, rcmax, Gapmax, indmax, RC
 
