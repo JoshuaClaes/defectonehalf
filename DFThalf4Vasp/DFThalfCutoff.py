@@ -2,7 +2,7 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-import parsevasp
+#import parsevasp
 
 class DFThalfCutoff:
     def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std',
