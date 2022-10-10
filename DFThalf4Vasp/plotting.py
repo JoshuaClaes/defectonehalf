@@ -23,7 +23,7 @@ def plot_cutoff_sweep(df_cutsweep=None, ax = None, folder=None, atomnames=None,
     xlim = [df_cutsweep[0].iloc[:,0].min(),df_cutsweep[0].iloc[:,0].max()]
     ax.set_title(title, fontsize=20);
     ax.tick_params(which='both', labelsize=15);
-    ax.set_ylabel('$E_{abs}$ (eV)', fontsize=25)
+    ax.set_ylabel('$E_{gap}$ (eV)', fontsize=25)
     ax.set_xlabel('Cutoff ($a_0$)', fontsize=25)
     ax.set_xlim(xlim)
     ax.legend(fontsize=15)
