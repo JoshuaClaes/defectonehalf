@@ -192,3 +192,32 @@ class DFThalfCutoff:
                 os.makedirs(save_folder + '/DOSCARS')
             shutil.copy(self.foldervasprun + '/DOSCAR',
                         save_folder + '/DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
+
+    def find_extreme_gap(self, rc_cutoff_df):
+        """
+        finds the extremal gap in rc_cutoff_df and return the rc, gap and index of this extremum
+        :param rc_cutoff_df:
+        :return:
+        """
+        # Find max
+        indext = rc_cutoff_df.iloc[:, 1].idxmax()
+        rcext = rc_cutoff_df.iloc[indext, 0]
+        Gapext = rc_cutoff_df.iloc[indext, 1]
+
+        # if the maximum is at rc=0 we should instead look for a minimum
+        if rcext == 0:
+            indext = rc_cutoff_df.iloc[:, 1].idxmin()
+            rcext  = rc_cutoff_df.iloc[indext, 0]
+            Gapext = rc_cutoff_df.iloc[indext, 1]
+        elif rcext == rc_cutoff_df.iloc[:, 0].max():
+            # if the maximum is found at rc max and our minimum is found at rc != 0 then we likely sweeped to far but
+            # found an extremum anyway.
+            # if the minimum is found a rc_min we likely didn't sweep far enough and our sweep range should increase
+            ind_gap_min = rc_cutoff_df.iloc[:, 1].idxmin()
+            if rc_cutoff_df.iloc[ind_gap_min, 0] == rc_cutoff_df.iloc[:, 0].min():
+                rcext = rc_cutoff_df.iloc[ind_gap_min, 0]
+                Gapext = rc_cutoff_df.iloc[ind_gap_min, 1]
+            else:
+                raise Exception("maximum was found at rc max! Increase rc max and run the program again")
+
+        return rcext, Gapext, indext
