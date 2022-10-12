@@ -2,6 +2,7 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
+import warnings
 #import parsevasp
 
 class DFThalfCutoff:
@@ -35,6 +36,7 @@ class DFThalfCutoff:
         self.find_gap_auto = find_gap_auto # if this is set to true the band gap will be calculated using pymatgen
 
         self.extrema_type = extrema_type
+        self.extrema_largest_rc_threshold = 3.5
 
         # VASP VARIABLES
         self.typevasprun   = typevasprun
@@ -235,24 +237,29 @@ class DFThalfCutoff:
         :return:
         """
         # Find max
-        indext = rc_cutoff_df.iloc[:, 1].idxmax()
-        rcext = rc_cutoff_df.iloc[indext, 0]
-        ext_gap = rc_cutoff_df.iloc[indext, 1]
+        indmax  = rc_cutoff_df.iloc[:, 1].idxmax()
+        rcmax   = rc_cutoff_df.iloc[indmax, 0]
+        max_gap = rc_cutoff_df.iloc[indmax, 1]
 
-        # if the maximum is at rc=0 we should instead look for a minimum
-        if rcext == 0:
-            indext = rc_cutoff_df.iloc[:, 1].idxmin()
-            rcext  = rc_cutoff_df.iloc[indext, 0]
-            ext_gap = rc_cutoff_df.iloc[indext, 1]
-        elif rcext == rc_cutoff_df.iloc[:, 0].max():
-            # if the maximum is found at rc max and our minimum is found at rc != 0 then we likely sweeped to far but
-            # found an extremum anyway.
-            # if the minimum is found a rc_min we likely didn't sweep far enough and our sweep range should increase
-            ind_gap_min = rc_cutoff_df.iloc[:, 1].idxmin()
-            if rc_cutoff_df.iloc[ind_gap_min, 0] == rc_cutoff_df.iloc[:, 0].min():
-                rcext = rc_cutoff_df.iloc[ind_gap_min, 0]
-                ext_gap = rc_cutoff_df.iloc[ind_gap_min, 1]
-            else:
-                raise Exception("maximum was found at rc max! Increase rc max and run the program again")
+        # Find min
+        indmin  = rc_cutoff_df.iloc[:, 1].idxmin()
+        rcmin   = rc_cutoff_df.iloc[indmin, 0]
+        min_gap = rc_cutoff_df.iloc[indmin, 1]
 
-        return rcext, ext_gap, indext
+        # rc proprties
+        largest_rc  = rc_cutoff_df.iloc[:, 0].max()
+        smallest_rc = rc_cutoff_df.iloc[:, 0].min()
+
+        # Find extrema
+        if rcmax > smallest_rc and rcmax < largest_rc:
+            # if rcmax is not at the edge we found the extrema
+            self.extrema_type = 'maximum' # for additional sweeps we should keep look at maxima
+            return rcmax, max_gap, indmax
+
+        elif rcmax == largest_rc and rcmin == smallest_rc and smallest_rc==0:
+            raise Warning('rcmin was found at 0 and rcmax was found at largest rc! Rc max is likely to small!')
+
+        else:
+            # if rc max is at the edges we return the minimum
+            self.extrema_type = 'minimum' # for additional sweeps we should keep look at minimum
+            return rcmin, min_gap, indmin
