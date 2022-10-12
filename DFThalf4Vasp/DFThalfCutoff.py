@@ -73,11 +73,11 @@ class DFThalfCutoff:
                         rb_atom = 0
                         rf_atom = RC[indext + 1]
                     elif rcext == rf_atom:
-                        raise Exception('The maximum gap is found at rc max!\n Increase rcext to get a proper gap')
+                        raise Exception('The extreme gap is found at rc max!\n Increase rcext to get a proper gap')
                     else:
                         # this should never happen
-                        raise Exception('An unexpected maximum cutoff was found')
-                    print('Current maximum gap for ', pot_setup.atomname, ' is ', np.round(ext_gap,4), 'eV and was found at rc', rcext, ' a0',
+                        raise Exception('An unexpected extremal cutoff was found')
+                    print('Current extreme gap for ', pot_setup.atomname, ' is ', np.round(ext_gap,4), 'eV and was found at rc', rcext, ' a0',
                           flush=True)
                 # Run single sweep
                 RC = np.round(np.linspace(rb_atom, rf_atom, nsteps),numdecCut)
@@ -91,7 +91,7 @@ class DFThalfCutoff:
                 # Save dataframe to csv file
                 cutoff_df.to_csv(csvfileloc,index=False)
             # print maximal gap
-            print('Maximum gap for ', pot_setup.atomname, ' is ', np.round(ext_gap,4),  'eV and was found at rc', rcext, ' a0',flush=True)
+            print('Extreme gap for ', pot_setup.atomname, ' is ', np.round(ext_gap,4),  'eV and was found at rc', rcext, ' a0',flush=True)
             # Copy potcar of maximum gap
             oldpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rcext,numdecCut)) + '_n_' +  str(cut_func_par['n'])
             newpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_opt'
