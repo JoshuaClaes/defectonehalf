@@ -7,7 +7,23 @@ import pandas as pd
 class DFThalfCutoff:
     def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std',
                  bulkpotcarloc='',save_eigenval=True ,save_doscar=False, run_in_ps_workdir=False,
-                 save_to_workdir=True, find_gap_auto=False):
+                 save_to_workdir=True, find_gap_auto=False, extrema_type='extrema'):
+        """
+        Constructor of the the DFThalfCutoff class
+        :param AtomSelfEnPots: list of potcarsetup objects
+        :param PotcarLoc: list of potcar file location corresponding to potcarsetup object
+        :param occband: list [index occupied band, spin] (up=1, down=2)
+        :param unoccband: list [index unoccupied band, spin] (up=1, down=2)
+        :param typevasprun: string with the bash command to run vasp
+        :param bulkpotcarloc: string with location for bulk potcar. This is only needed for defect calculation an not bulk
+        :param save_eigenval: if true eigenval files will be saved
+        :param save_doscar:  if true doscar files will be saved
+        :param run_in_ps_workdir: if true vasp will run in the workdir of potcarsetup
+        :param save_to_workdir: if true files are saved in workdir/atomname of the current potcarsetup
+        :param find_gap_auto: no implemented! find gaps automaticcaly meaning occband an unoccband are not needed
+        :param extrema_type: string with the type of extrema we're looking for. Option: extrema(default) or ext,
+         maximum or max, minimum or min
+        """
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
         self.atoms_self_En_pots = AtomSelfEnPots
@@ -17,6 +33,8 @@ class DFThalfCutoff:
         self.unoccband = unoccband  # list [index unoccupied band, spin] (up=1, down=2)
         self.occband   = occband    # list [index occupied band  , spin] (up=1, down=2)
         self.find_gap_auto = find_gap_auto # if this is set to true the band gap will be calculated using pymatgen
+
+        self.extrema_type = extrema_type
 
         # VASP VARIABLES
         self.typevasprun   = typevasprun
