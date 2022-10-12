@@ -66,18 +66,18 @@ class DFThalfCutoff:
             for j, nsteps in enumerate(nsteps_list):
                 if j != 0:
                     # Set begin and final radius for next loop
-                    if rcmax != 0:
-                        rb_atom = RC[indmax - 1]
-                        rf_atom = RC[indmax + 1]
-                    elif rcmax == 0:
+                    if rcext != 0:
+                        rb_atom = RC[indext - 1]
+                        rf_atom = RC[indext + 1]
+                    elif rcext == 0:
                         rb_atom = 0
-                        rf_atom = RC[indmax + 1]
-                    elif rcmax == rf_atom:
-                        raise Exception('The maximum gap is found at rc max!\n Increase rcmax to get a proper gap')
+                        rf_atom = RC[indext + 1]
+                    elif rcext == rf_atom:
+                        raise Exception('The maximum gap is found at rc max!\n Increase rcext to get a proper gap')
                     else:
                         # this should never happen
                         raise Exception('An unexpected maximum cutoff was found')
-                    print('Current maximum gap for ', pot_setup.atomname, ' is ', np.round(gapmax,4), 'eV and was found at rc', rcmax, ' a0',
+                    print('Current maximum gap for ', pot_setup.atomname, ' is ', np.round(ext_gap,4), 'eV and was found at rc', rcext, ' a0',
                           flush=True)
                 # Run single sweep
                 RC = np.round(np.linspace(rb_atom, rf_atom, nsteps),numdecCut)
@@ -86,14 +86,14 @@ class DFThalfCutoff:
                                 'n': cut_func_par['n']
                 }
                 potcarfile = self.potcar_loc[i]
-                cutoff_df, rcmax , gapmax, indmax, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
+                cutoff_df, rcext , ext_gap, indext, RC = self.single_cutoff_sweep(pot_setup, potcarfile, new_cut_func_par, unalteredpotcars, cutoff_df=cutoff_df, numdecCut=numdecCut)
 
                 # Save dataframe to csv file
                 cutoff_df.to_csv(csvfileloc,index=False)
             # print maximal gap
-            print('Maximum gap for ', pot_setup.atomname, ' is ', np.round(gapmax,4),  'eV and was found at rc', rcmax, ' a0',flush=True)
+            print('Maximum gap for ', pot_setup.atomname, ' is ', np.round(ext_gap,4),  'eV and was found at rc', rcext, ' a0',flush=True)
             # Copy potcar of maximum gap
-            oldpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rcmax,numdecCut)) + '_n_' +  str(cut_func_par['n'])
+            oldpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rcext,numdecCut)) + '_n_' +  str(cut_func_par['n'])
             newpotcaroptloc = pot_setup.workdir + '/' +pot_setup.atomname + '/POTCAR_opt'
             shutil.copy(oldpotcaroptloc, newpotcaroptloc)
             self.potcar_command_begin += ' ' + newpotcaroptloc
@@ -139,12 +139,10 @@ class DFThalfCutoff:
         rc_cutoff_df = cutoff_df[cutoff_df['Cutoff'].isin(RC)]
         rc_cutoff_df = rc_cutoff_df.sort_values('Cutoff',axis=0) # sort to maintain the order of RC
         rc_cutoff_df = rc_cutoff_df.reset_index(drop=True)
-        # Find max
-        indmax = rc_cutoff_df.iloc[:, 1].idxmax()
-        rcmax  = rc_cutoff_df.iloc[indmax, 0]
-        Gapmax = rc_cutoff_df.iloc[indmax, 1]
+        # Find extrema
+        rcext, ext_gap, indext = self.find_extrema_gap(rc_cutoff_df)
 
-        return cutoff_df, rcmax, Gapmax, indmax, RC
+        return cutoff_df, rcext, ext_gap, indext, RC
 
     def run_vasp(self, currentpotcar, unalteredpotcars):
         # Go vasp run directory
@@ -175,8 +173,8 @@ class DFThalfCutoff:
     def calculate_gap(self, EIGENVALfileloc):
         # spinlb: Spin lowest band (up=1, down=2)
         # spinhb: Spin highest band (up=1, down=2)
-        if self.find_gap_auto:
-            return 0
+        #if self.find_gap_auto:
+        #    return 0
 
 
         ilb     = self.occband[0] # index lowest band
@@ -211,7 +209,26 @@ class DFThalfCutoff:
             shutil.copy(self.foldervasprun + '/DOSCAR',
                         save_folder + '/DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
 
-    def find_extreme_gap(self, rc_cutoff_df):
+    def find_extrema_gap(self, rc_cutoff_df):
+        if self.extrema_type == 'extrema' or self.extrema_type == 'ext':
+            return self._find_extrema_gap(rc_cutoff_df)
+        elif self.extrema_type == 'maximum' or self.extrema_type == 'max':
+            indext = rc_cutoff_df.iloc[:, 1].idxmax()
+            rcext = rc_cutoff_df.iloc[indext, 0]
+            ext_gap = rc_cutoff_df.iloc[indext, 1]
+            return rcext, ext_gap, indext
+        elif self.extrema_type == 'minimum' or self.extrema_type == 'min':
+            indext = rc_cutoff_df.iloc[:, 1].idxmin()
+            rcext  = rc_cutoff_df.iloc[indext, 0]
+            ext_gap = rc_cutoff_df.iloc[indext, 1]
+            return rcext, ext_gap, indext
+        else:
+            raise Warning('Unknown extrema_type was given!\nextrema_type was set to extrema!')
+            self.extrema_type = 'extrema'
+            return self._find_extrema_gap(rc_cutoff_df)
+
+
+    def _find_extrema_gap(self, rc_cutoff_df):
         """
         finds the extremal gap in rc_cutoff_df and return the rc, gap and index of this extremum
         :param rc_cutoff_df:
@@ -220,13 +237,13 @@ class DFThalfCutoff:
         # Find max
         indext = rc_cutoff_df.iloc[:, 1].idxmax()
         rcext = rc_cutoff_df.iloc[indext, 0]
-        Gapext = rc_cutoff_df.iloc[indext, 1]
+        ext_gap = rc_cutoff_df.iloc[indext, 1]
 
         # if the maximum is at rc=0 we should instead look for a minimum
         if rcext == 0:
             indext = rc_cutoff_df.iloc[:, 1].idxmin()
             rcext  = rc_cutoff_df.iloc[indext, 0]
-            Gapext = rc_cutoff_df.iloc[indext, 1]
+            ext_gap = rc_cutoff_df.iloc[indext, 1]
         elif rcext == rc_cutoff_df.iloc[:, 0].max():
             # if the maximum is found at rc max and our minimum is found at rc != 0 then we likely sweeped to far but
             # found an extremum anyway.
@@ -234,8 +251,8 @@ class DFThalfCutoff:
             ind_gap_min = rc_cutoff_df.iloc[:, 1].idxmin()
             if rc_cutoff_df.iloc[ind_gap_min, 0] == rc_cutoff_df.iloc[:, 0].min():
                 rcext = rc_cutoff_df.iloc[ind_gap_min, 0]
-                Gapext = rc_cutoff_df.iloc[ind_gap_min, 1]
+                ext_gap = rc_cutoff_df.iloc[ind_gap_min, 1]
             else:
                 raise Exception("maximum was found at rc max! Increase rc max and run the program again")
 
-        return rcext, Gapext, indext
+        return rcext, ext_gap, indext
