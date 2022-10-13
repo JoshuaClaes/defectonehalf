@@ -256,7 +256,7 @@ class DFThalfCutoff:
             self.extrema_type = 'maximum' # for additional sweeps we should keep look at maxima
             return rcmax, max_gap, indmax
 
-        elif rcmax == largest_rc and rcmin == smallest_rc and smallest_rc==0:
+        elif rcmax == largest_rc and rcmin == 0:
             raise Warning('rcmin was found at 0 and rcmax was found at largest rc! Rc max is likely to small!')
 
         else:
