@@ -82,7 +82,7 @@ def find_lue(eign, tol=5e-3):
 
     return lue, ind_lue, spin
 
-def find_optimal_cutoff(folder, atomnames, print_output=False):
+def find_optimal_cutoff(folder, atomnames, print_output=False, cutoff_filename = 'CutoffOpt.csv'):
     """
     Looks for the optimal cut parameters aswell as maximum gaps for a set of atoms within a defect
     :param folder:
@@ -94,7 +94,7 @@ def find_optimal_cutoff(folder, atomnames, print_output=False):
     max_gap_list = []
     gapdf_list  = []
     for name in atomnames:
-        gap = pd.read_csv(folder + '/' + name + '/CutoffOpt.csv')  # read csv file with gap as a function of rc
+        gap = pd.read_csv(folder + '/' + name + '/' + cutoff_filename)  # read csv file with gap as a function of rc
         indmax = gap.iloc[:, 1].idxmax()  # find maximum cutoff
         rc = gap.iloc[indmax, 0]  # cutoff radius
         max_gap = gap.iloc[indmax, 1]  # maximum gap

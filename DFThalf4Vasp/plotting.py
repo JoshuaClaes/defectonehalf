@@ -2,9 +2,9 @@ from DFThalf4Vasp.postprocessing import find_optimal_cutoff
 import matplotlib.pyplot as plt
 
 def plot_cutoff_sweep(df_cutsweep=None, ax = None, folder=None, atomnames=None,
-                      labels=None, colors=None, title=None):
+                      labels=None, colors=None, title=None, cutoff_filename='CutoffOpt.csv'):
     if folder is not None and atomnames is not None:
-        _, _, df_cutsweep = find_optimal_cutoff(folder,atomnames)
+        _, _, df_cutsweep = find_optimal_cutoff(folder,atomnames, cutoff_filename==cutoff_filename)
 
     if labels is None:
         labels=atomnames
