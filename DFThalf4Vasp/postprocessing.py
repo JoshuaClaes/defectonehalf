@@ -82,7 +82,8 @@ def find_lue(eign, tol=5e-3):
 
     return lue, ind_lue, spin
 
-def find_optimal_cutoff(folder, atomnames, print_output=False, cutoff_filename = 'CutoffOpt.csv'):
+def find_optimal_cutoff(folder, atomnames, print_output=False, cutoff_filename = 'CutoffOpt.csv',
+                        extrema_type='extrema'):
     """
     Looks for the optimal cut parameters aswell as maximum gaps for a set of atoms within a defect
     :param folder:
@@ -94,15 +95,64 @@ def find_optimal_cutoff(folder, atomnames, print_output=False, cutoff_filename =
     max_gap_list = []
     gapdf_list  = []
     for name in atomnames:
+        # read csv files with gap data
         gap = pd.read_csv(folder + '/' + name + '/' + cutoff_filename)  # read csv file with gap as a function of rc
-        indmax = gap.iloc[:, 1].idxmax()  # find maximum cutoff
-        rc = gap.iloc[indmax, 0]  # cutoff radius
-        max_gap = gap.iloc[indmax, 1]  # maximum gap
-        rc_list.append(rc)
-        max_gap_list.append(max_gap)
+        # find extrema
+        rcext, ext_gap, indext = find_extrema_gap(gap,extrema_type)
+        # save dat in appropriate structure
+        rc_list.append(rcext)
+        max_gap_list.append(ext_gap)
         gapdf_list.append(gap)
         if print_output:
-            print('The maximum gap of ', name, 'is ', max_gap, 'eV and is found at r_c = ',
-                  rc, 'a.u.')
+            print('The extreme gap of ', name, 'is ', ext_gap, 'eV and is found at r_c = ',
+                  rcext, 'a.u.')
 
     return rc_list, max_gap_list, gapdf_list
+
+def find_extrema_gap(rc_cutoff_df,extrema_type='extrema'):
+    if extrema_type == 'extrema' or extrema_type == 'ext':
+        return _find_extrema_gap(rc_cutoff_df)
+    elif extrema_type == 'maximum' or extrema_type == 'max':
+        indext  = rc_cutoff_df.iloc[:, 1].idxmax()
+        rcext   = rc_cutoff_df.iloc[indext, 0]
+        ext_gap = rc_cutoff_df.iloc[indext, 1]
+        return rcext, ext_gap, indext
+    elif extrema_type == 'minimum' or extrema_type == 'min':
+        indext  = rc_cutoff_df.iloc[:, 1].idxmin()
+        rcext   = rc_cutoff_df.iloc[indext, 0]
+        ext_gap = rc_cutoff_df.iloc[indext, 1]
+        return rcext, ext_gap, indext
+    else:
+        print('Unknown extrema type was given! Extrema type extrema was used!')
+        return _find_extrema_gap(rc_cutoff_df)
+
+def _find_extrema_gap(rc_cutoff_df):
+    """
+    finds the extremal gap in rc_cutoff_df and return the rc, gap and index of this extremum
+    :param rc_cutoff_df:
+    :return:
+    """
+    # Find max
+    indmax = rc_cutoff_df.iloc[:, 1].idxmax()
+    rcmax = rc_cutoff_df.iloc[indmax, 0]
+    max_gap = rc_cutoff_df.iloc[indmax, 1]
+
+    # Find min
+    indmin = rc_cutoff_df.iloc[:, 1].idxmin()
+    rcmin = rc_cutoff_df.iloc[indmin, 0]
+    min_gap = rc_cutoff_df.iloc[indmin, 1]
+
+    # rc proprties
+    largest_rc = rc_cutoff_df.iloc[:, 0].max()
+    smallest_rc = rc_cutoff_df.iloc[:, 0].min()
+
+    # Find extrema
+    if rcmax > smallest_rc and rcmax < largest_rc:
+        # if rcmax is not at the edge we found the extrema
+        return rcmax, max_gap, indmax
+
+    elif rcmax == largest_rc and rcmin == 0:
+        raise Warning('rcmin was found at 0 and rcmax was found at largest rc! Rc max is likely to small!')
+    else:
+        # if rc max is at the edges we return the minimum
+        return rcmin, min_gap, indmin
