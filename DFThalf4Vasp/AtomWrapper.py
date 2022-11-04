@@ -42,17 +42,6 @@ class AtomWrapper:
             f.write('100 maxit')
         return 0
 
-    def calc_self_energy(self, radfile, potfile_xi, potfile_zeta, Nrad=None):
-        # READ RADII
-        radii = self.ReadRadii(radfile, Nrad)
-
-        # READ POTENTIAL OCCUPIED BAND XI
-        skiprows = int(np.ceil(Nrad / 4) + 3)  # skip all rows of radii + head of radii (size = 1)
-        # + head of potential (size = 2)
-        pot_xi = self.read_pot_file(potfile_xi, Nrad, skiprows=skiprows)
-
-        # READ POTENTIAL UNOCCUPIED BANDS ZETA
-        pot_zeta = self.read_pot_file(potfile_zeta, Nrad, skiprows=skiprows)
 
     def read_pot_file(self, file, nrows=None, nval=None, skiprows=0):
         """
