@@ -1,4 +1,6 @@
 import numpy as np
+import pymatgen.io.vasp as pmg
+from pymatgen.core import Structure
 
 def print_band_characters(bandind, atomind, Peign, structure):
     if not (isinstance(atomind, list)):
@@ -29,6 +31,28 @@ def calc_electron_fraction(Achar=None, mlt=None, Peign=None, iocc=None,iunocc=No
         Efrac = calc_electron_fraction_fullinput(Peign,iocc,iunocc,atominds,mlt)
     Efrac = np.round(Efrac,numdec)
     return Efrac
+
+def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_band_chars=True, print_xi_zeta=False):
+    # load structure
+    structure = Structure.from_file(folder + "/POSCAR")
+
+    # load project eigenvalues
+    run = pmg.Vasprun(folder + '/vasprun.xml', parse_potcar_file=False,
+                      parse_eigen=True, parse_projected_eigen=True, separate_spins=True)
+    Peign = run.projected_eigenvalues[spin]
+
+    # Check bands
+    if print_band_chars:
+        print_band_characters([iocc, iunocc],atominds, Peign, structure)
+
+    # Calculate electron fractions
+    Xi, Zeta = calc_electron_fraction(Peign=Peign, iocc=iocc, iunocc=iunocc, atominds=atominds)
+
+    if print_xi_zeta:
+        print('Xi:\n', Xi)
+        print('Zeta:\n', Zeta)
+
+    return Xi, Zeta
 
 #################################
 # HELPER FUNCTIONS
