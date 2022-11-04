@@ -24,7 +24,10 @@ class AtomWrapper:
         Function makes an input file for ATOM
         :string dir: directory for input file
         :string atom: name/symbol of atom
-        :param EXtype: Exchange correlation type used in ATOM. ca Ceperley-Alder (best LDA), pb PBE
+        :list orbitals: a list containing [int #core orbitals, #valence orbitals]  Example [1,2] first orbitals a core
+                            orbitals the last two are valence orbitals
+        :list occupation: list of orbital objects
+        :string EXtype: Exchange correlation type used in ATOM. ca Ceperley-Alder (best LDA), pb PBE
         :return:
         """
         with open(dir + '/INP','w') as f:
@@ -34,7 +37,8 @@ class AtomWrapper:
             f.write('       0.0       0.0       0.0       0.0       0.0       0.0\n')
             f.write('    ' + str(orbitals[0])+ '    ' + str(orbitals[1])+'\n')
             for occ in occupation:
-                f.write('    ' + str(occ['n']) + '    ' + str(occ['l']) + '      ' + str(occ['occupation']) + '      0.00' +'\n')
+                f.write('    ' + str(occ['n']) + '    ' + str(occ['l']) + '      ' + str(np.round(occ['occupation'],2))
+                        + '      0.00' +'\n')
             f.write('100 maxit')
         return 0
 
