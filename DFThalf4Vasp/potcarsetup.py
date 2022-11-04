@@ -40,20 +40,19 @@ class PotcarSetup:
         self.Radii = np.array([]) # radii of potvalues
         self.typeCutfunc = typeCutfunc
         # Atom properties
-        self.atomname       = atomname
-        self.atom           = atom
-        self.orb_structure  = orb_structure
-        self.GSorbs         = GSorbs
+        self.atomname       = atomname  # Name/label of the atom. This does not have to be a chemical element.
+                                        # This is mostly used for file names
+        self.atom           = atom      # Atomic symbol of atom in question example 'C','N' and 'Cd'
+        self.orb_structure  = orb_structure # orb_structure: a list containing [int #core orbitals, #valence orbitals]
+                                            # Example [1,2] first orbitals a core orbitals the last two are valence
+                                            # orbitals
+        self.GSorbs         = GSorbs # Orbital object containing the valence orbitals and their ground state occupation
 
     def calc_self_En_pot(self, xi, zeta, nrowspot=None):
         """
         # 1) Creates files structure for running atom.
         # 2) Runs ATOM to create in Xi and Zeta folder
         # 3) Calculate self energy potential (without cutoff function)
-        :string atomname: Name/label of the atom. This does not have to be a chemical element. This is mostly used for file names
-        :string atom: chemical element example 'C','N' and 'Cd'
-        :param orb_structure: a list containing [int #core orbitals, #valence orbitals] Example [1,2] first orbitals a core orbitals the last two are valence orbitals
-        :param GSorbs: Orbital object containing the valence orbitals and their ground state occupation.
         :param xi: List with electron fraction removed from each orbital given in GSorbs for the occupied(valence or defect) band.
         :param zeta: List with electron fraction removed from each orbital given in GSorbs for the unoccupied(conduction or defect) band.
         :param nrowspot: Debugging parameter in case we need to manually set nrows
