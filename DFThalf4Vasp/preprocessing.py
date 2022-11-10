@@ -1,6 +1,11 @@
+import pickle
+import os
+import shutil
 import numpy as np
 import pymatgen.io.vasp as pmg
 from pymatgen.core import Structure
+
+import DFThalf4Vasp.potcarsetup as ps
 
 def print_band_characters(bandind, atomind, Peign, structure):
     if not (isinstance(atomind, list)):
@@ -53,6 +58,45 @@ def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_ban
         print('Zeta:\n', Zeta)
 
     return Xi, Zeta
+
+def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXtype, potcarfile, cutfuncpar, vaspfiles = [] ):
+    """
+    This function setups a folder to prefrom a cutoff sweep from DFThalfCutoff
+    :param atomnames: list with atom labels
+    :param atoms: list with atomic symbols
+    :param orbitals: list of list containing the number of core and valence electrons
+    [ [#core e atom1, #val e atom1], [#core e atom2,#val e atom2], ..., [#core e atomn,#val e atomn]]
+    :param GSorbs: list orbital object containing the ground state configuration
+    :param Xi: list of xi for each orbtial of each atom [[xi_s a1, xi_p a1, xi_d a1],...]
+    :param Zeta: list of zeta for each orbtial of each atom [[zeta_s a1, zeta_p a1, zeta_d a1],...]
+    :param workdir: name/path to working directory
+    :param EXtype: exchange correclation type for ATOM
+    :param potcarfile: string with potcar file type 'lda' or 'pbe'
+    :param cutfuncpar:  dict with cutoff function parameters
+    :param vaspfiles: list of vasp files location which will be copied to the vasp_run file
+    :return:
+    """
+    for i, atom in enumerate(atoms):
+        # Calc Vs
+        Vs = ps.PotcarSetup(workdir, atomnames[i], atom, orbitals[i], GSorbs[i], ExCorrAE=EXtype)
+        Vs.calc_self_En_pot(Xi[i], Zeta[i])
+
+        # Make potcars
+        Vs.make_potcar(potcarfile, cutfuncpar)
+
+        # Safe potcar setup object
+        file = open(Vs.workdir + '/' +atomnames[i] + '_ps.PotSetup', 'wb')
+        pickle.dump(Vs, file)
+        file.close()
+
+        # make vasp run folder
+        if i == 0 and not(os.path.isdir(Vs.workdir + '/vasp_run')):
+            # setup vasp calcualtion
+            os.mkdir(Vs.workdir + '/vasp_run')
+    # copy vasp files
+    for file in vaspfiles:
+        shutil.copy(file, workdir + '/vasp_run/' )
+    return 0
 
 #################################
 # HELPER FUNCTIONS
