@@ -9,7 +9,7 @@ from DFThalf4Vasp.PotcarWrapper import find_kmax, read_potcar_file
 
 class PotcarSetup:
 
-    def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'pb' , isfullpath=False, typeCutfunc='DFT-1/2'):
+    def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'ca' , isfullpath=False, typeCutfunc='DFT-1/2'):
         # read config file
         path = os.path.dirname(DFThalf4Vasp.__file__)
         with open(path + '/potcarsetupconfig.json') as json_file:
