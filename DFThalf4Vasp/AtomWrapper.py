@@ -33,11 +33,16 @@ class AtomWrapper:
         with open(dir + '/INP','w') as f:
             f.write('#\n# ' + atom +'\n')
             f.write('   ae      '+ atom + '\n') # ae -> tell atom to perform calculation, there rest is a title
-            f.write(' n=' + atom + '  c=' +EXtype + '\n')
+            if len(atom) == 1:
+                f.write(4*' ' + atom + 3*' ' + EXtype + '\n') # 4 Space in front because symbol only takes one space
+            elif len(atom) == 2:
+                f.write(3*' ' + atom + 3*' ' + EXtype + '\n') # 3 spaces in front because symbol takes 2 spaces
+            else:
+                raise Exception('Atomic symbol not recognised!')
             f.write('       0.0       0.0       0.0       0.0       0.0       0.0\n')
-            f.write('    ' + str(orbitals[0])+ '    ' + str(orbitals[1])+'\n')
+            f.write(4*' ' + str(orbitals[0])+ 4*' ' + str(orbitals[1])+'\n')
             for occ in occupation:
-                f.write('    ' + str(occ['n']) + '    ' + str(occ['l']) + '      ' + str(np.round(occ['occupation'],2))
+                f.write(4*' ' + str(occ['n']) + 4*' '+ str(occ['l']) + 6*' ' + str(np.round(occ['occupation'],2))
                         + '      0.00' +'\n')
             f.write('100 maxit')
         return 0
