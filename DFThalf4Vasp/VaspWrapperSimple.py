@@ -2,12 +2,13 @@ import os
 import pandas as pd
 from DFThalf4Vasp import VaspWrapper
 
-class VaspWrapperSimple(VaspWrapper):
+class VaspWrapperSimple(VaspWrapper.VaspWrapper):
     """
     A child of the VaspWrapper class which will interact with vasp using only bacis python functionalities and libraries.
     """
     def __init__(self):
-        VaspWrapper.__init__(self)
+        super().__init__()
+        #VaspWrapper.__init__(self)
 
     def run_vasp(self, foldervasprun, typevasprun):
         # Go vasp run directory
@@ -42,7 +43,7 @@ class VaspWrapperSimple(VaspWrapper):
         :return:
         """
 
-        if kpoints is not 0:
+        if kpoints != 0:
             raise Exception('kpoints is not equal to 0!\nWhile VaspWrapperSimple only works for gamma point calculations!')
 
         if not(isinstance(spins,list)):
