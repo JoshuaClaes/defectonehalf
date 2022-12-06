@@ -2,13 +2,14 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
+from DFThalf4Vasp import VaspWrapperSimple
 import warnings
 #import parsevasp
 
 class DFThalfCutoff:
     def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std',
                  bulkpotcarloc='',save_eigenval=True ,save_doscar=False, run_in_ps_workdir=False,
-                 save_to_workdir=True, find_gap_auto=False, extrema_type='extrema'):
+                 save_to_workdir=True, find_gap_auto=False, extrema_type='extrema',vasp_wrapper=None):
         """
         Constructor of the the DFThalfCutoff class
         :param AtomSelfEnPots: list of potcarsetup objects
@@ -24,6 +25,8 @@ class DFThalfCutoff:
         :param find_gap_auto: no implemented! find gaps automaticcaly meaning occband an unoccband are not needed
         :param extrema_type: string with the type of extrema we're looking for. Option: extrema(default) or ext,
          maximum or max, minimum or min
+         :param vasp_wrapper: vasp_wrapper object to interact with vasp on the system. There are some example
+         vasp_wrappers in this project but you might need to make your own.
         """
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
@@ -39,6 +42,9 @@ class DFThalfCutoff:
         self.extrema_largest_rc_threshold = 3.5
 
         # VASP VARIABLES
+        if vasp_wrapper == None:
+            vasp_wrapper = VaspWrapperSimple.VaspWrapperSimple()
+        self.vasp_wrapper = vasp_wrapper
         self.typevasprun   = typevasprun
         self.foldervasprun = None
         self.run_in_ps_workdir = run_in_ps_workdir # if true vasp will run in potcarsetup.workdir
@@ -122,10 +128,9 @@ class DFThalfCutoff:
 
             # Run vasp
             newpotcarfileloc = Vs_potsetup.workdir + '/' +Vs_potsetup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rc,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
-            self.run_vasp(newpotcarfileloc, unalterpotcars)
+            self._run_vasp(newpotcarfileloc, unalterpotcars)
             # Calculate gap
-            eigenval_loc = self.foldervasprun + '/EIGENVAL'
-            gap = self.calculate_gap(eigenval_loc)
+            gap = self._calculate_gap()
             # print result
             print('Rc: ', rc, ' Gap: ', np.round(gap,4), flush=True)
             # save result
@@ -146,49 +151,23 @@ class DFThalfCutoff:
 
         return cutoff_df, rcext, ext_gap, indext, RC
 
-    def run_vasp(self, currentpotcar, unalteredpotcars):
-        # Go vasp run directory
-        oldpath = os.getcwd()
-        os.chdir(self.foldervasprun)
+    def _run_vasp(self, currentpotcar, unalteredpotcars):
         # Make POTCAR for vasp run
-        self.make_vasp_run_potcar(currentpotcar, unalteredpotcars)
-        # Copy INCAR, KPOINTS and POSCAR file
-
+        self._make_vasp_run_potcar(currentpotcar, unalteredpotcars)
         # Run vasp
-        if self.typevasprun == 'vasp_std' or self.typevasprun =='std':
-            os.system('srun vasp_std >> vasp.out')
-        elif self.typevasprun == 'vasp_gam' or self.typevasprun =='gam':
-            os.system('srun vasp_gam >> vasp.out')
-        elif self.typevasprun == 'vasp_ncl' or self.typevasprun =='ncl':
-            os.system('srun vasp_ncl >> vasp.out')
-        else:
-            # incase another type is given we try to run the given string
-            os.system(self.typevasprun)
-        # Go back to original path
-        os.chdir(oldpath)
+        self.vasp_wrapper.run_vasp(self.foldervasprun,self.typevasprun)
 
-    def make_vasp_run_potcar(self, currentpotcar, unalteredpotcars):
+
+    def _make_vasp_run_potcar(self, currentpotcar, unalteredpotcars):
         # Makes the potcar for the actual vasp by concatenating DFT-1/2 potcars
         Makepotcarcommand = 'cat ' + self.potcar_command_begin + ' ' + currentpotcar + ' ' + unalteredpotcars + ' > POTCAR'
         os.system(Makepotcarcommand)
 
-    def calculate_gap(self, EIGENVALfileloc):
-        # spinlb: Spin lowest band (up=1, down=2)
-        # spinhb: Spin highest band (up=1, down=2)
-        #if self.find_gap_auto:
-        #    return 0
-
-
-        ilb     = self.occband[0] # index lowest band
-        spinlb  = self.occband[1] # Spin lowest band (up=1, down=2)
-        ihb     = self.unoccband[0]   # index highest band
-        spinhb  = self.unoccband[1]   # Spin highest band (up=1, down=2)
-
-        # Read eigenvalues
-        eign = pd.read_csv(EIGENVALfileloc, delim_whitespace=True, skiprows=8, header=None)
-        # Calculate gap
-        Gap = eign.iloc[ihb, spinhb] - eign.iloc[ilb, spinlb]
-        return Gap
+    def _calculate_gap(self):
+        bands = [self.occband[0], self.unoccband[0]]
+        spins = [self.occband[1], self.unoccband[1]]
+        gap = self.vasp_wrapper.calculate_gap(bands,spins,vaspfolder=self.foldervasprun)
+        return gap
 
     def save_vasp_output_files(self,Vs_potsetup,rc,numdecCut,CutFuncPar):
         if self.save_to_workdir:
