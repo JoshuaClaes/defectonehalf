@@ -47,7 +47,7 @@ class DFThalfCutoff:
         self.vasp_wrapper = vasp_wrapper
         self.typevasprun   = typevasprun
         self.foldervasprun = None
-        self.run_in_ps_workdir = run_in_ps_workdir # if true vasp will run in potcarsetup.workdir
+        self.run_in_ps_workdir = run_in_ps_workdir # if true vasp will run in potcarsetup.workdir (this is not implemented)
 
         # EXTRA VARIABLES
         self.potcar_command_begin = bulkpotcarloc
@@ -147,7 +147,7 @@ class DFThalfCutoff:
         rc_cutoff_df = rc_cutoff_df.sort_values('Cutoff',axis=0) # sort to maintain the order of RC
         rc_cutoff_df = rc_cutoff_df.reset_index(drop=True)
         # Find extrema
-        rcext, ext_gap, indext = self.find_extrema_gap(rc_cutoff_df)
+        rcext, ext_gap, indext = self.get_rext_gap(rc_cutoff_df)
 
         return cutoff_df, rcext, ext_gap, indext, RC
 
@@ -155,7 +155,7 @@ class DFThalfCutoff:
         # Make POTCAR for vasp run
         self._make_vasp_run_potcar(currentpotcar, unalteredpotcars)
         # Run vasp
-        self.vasp_wrapper.run_vasp(self.foldervasprun,self.typevasprun)
+        self.vasp_wrapper.run_vasp(self.foldervasprun, self.typevasprun)
 
 
     def _make_vasp_run_potcar(self, currentpotcar, unalteredpotcars):
@@ -190,7 +190,7 @@ class DFThalfCutoff:
             shutil.copy(self.foldervasprun + '/DOSCAR',
                         save_folder + '/DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
 
-    def find_extrema_gap(self, rc_cutoff_df):
+    def get_rext_gap(self, rc_cutoff_df):
         if self.extrema_type == 'extrema' or self.extrema_type == 'ext':
             return self._find_extrema_gap(rc_cutoff_df)
         elif self.extrema_type == 'maximum' or self.extrema_type == 'max':
