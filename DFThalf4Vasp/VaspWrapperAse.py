@@ -1,7 +1,5 @@
 import os
-import pandas as pd
 import numpy as np
-import ase
 from ase.calculators.vasp import Vasp
 from ase.dft.bandgap import bandgap
 
@@ -35,7 +33,10 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
     def calculate_bandgap(self,foldervasprun='./'):
         # Get information from previous Vasp run
         calc = Vasp(directory=foldervasprun, restart=True, xc='lda')
-        calc.read_results()
+        try:
+            calc.read_results()
+        except:
+            pass
 
         # Calculate band gap
         bg = bandgap(calc, output=None)[0]  # The actual gap is found at position 0 in the array
@@ -78,7 +79,10 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
 
         # Get information from previous Vasp run
         calc = Vasp(directory='', restart=True, xc='lda')
-        calc.read_results()
+        try:
+            calc.read_results()
+        except:
+            pass
 
         # Get eigenvalues from vasp calculation
         bs = calc.band_structure()
