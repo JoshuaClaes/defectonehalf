@@ -170,7 +170,7 @@ class DFThalfCutoff:
 
     def _calculate_gap(self):
         if self.is_bulk_calc:
-            gap = self.vasp_wrapper.calculate_bandgap()
+            gap = self.vasp_wrapper.calculate_bandgap(foldervasprun=self.foldervasprun)
         else:
             bands = [self.occband[0], self.unoccband[0]]
             spins = [self.occband[1], self.unoccband[1]]
@@ -179,7 +179,7 @@ class DFThalfCutoff:
             else:
                 kpoints = [0, 0] # default: Gamma point/ kp=0 gap
 
-            gap = self.vasp_wrapper.calculate_gap(bands,spins,vaspfolder=self.foldervasprun, kpoints=kpoints)
+            gap = self.vasp_wrapper.calculate_gap(bands,spins, kpoints=kpoints, foldervasprun=self.foldervasprun)
         return gap
 
     def save_vasp_output_files(self,Vs_potsetup,rc,numdecCut,CutFuncPar):

@@ -29,7 +29,7 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         os.chdir(oldpath)
         return 0
 
-    def calculate_gap(self,bands,spins,vaspfolder='./',kpoints=0):
+    def calculate_gap(self,bands,spins,foldervasprun='./',kpoints=0):
         """
 
         :param bands: list with the indices of the lower en higher band, [lower band, higher band]
@@ -62,6 +62,6 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         gap = eign.iloc[bands[0], spins[0]] - eign.iloc[bands[1], spins[1]]
         return gap
 
-def calculate_bandgap(self):
+def calculate_bandgap(self, foldervasprun=None):
     raise Exception('calculate bandgap is not implemeneted in VaspWrapperSimple!\nUse calculate gap instead!')
     return 0

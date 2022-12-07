@@ -32,23 +32,23 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
         # Go back to original path
         os.chdir(oldpath)
 
-    def calculate_bandgap(self):
+    def calculate_bandgap(self,foldervasprun='./'):
         # Get information from previous Vasp run
-        calc = Vasp(directory='', restart=True, xc='lda')
+        calc = Vasp(directory=foldervasprun, restart=True, xc='lda')
         calc.read_results()
 
         # Calculate band gap
         bg = bandgap(calc, output=None)[0]  # The actual gap is found at position 0 in the array
         return bg
 
-    def calculate_gap(self, bands, spins, vaspfolder='./', kpoints=0):
+    def calculate_gap(self, bands, spins, foldervasprun='./', kpoints=0):
         """
         Calculalate gap will calculate the gap between 2 different bands.
         :param bands: list 2 indices [index lowest band, index highest band]
         :param spins: list containing the spins of the bands. 1=up and 2=down or use strings 'up' and 'down'.
         Example: [1, 2], ['up','down']
         If the input is not a list but an int or str, calculate gap will assume that both bands have the same spin.
-        :param vaspfolder:
+        :param foldervasprun:
         :param kpoints: list of 2 indices with the kpoints for which the gap should be calculated. If a single interger
         is give calculate_gap will calculate the gap a the same kpoints.
         Altenatively: kpoints can be set to None or all which will calculate the indirect gap between the 2 given bands

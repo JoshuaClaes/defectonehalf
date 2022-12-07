@@ -7,8 +7,8 @@ class VaspWrapper(object):
     def run_vasp(self, foldervasprun, typevasprun):
         pass
 
-    def calculate_bandgap(self):
+    def calculate_bandgap(self, foldervasprun):
         pass
 
-    def calculate_gap(self, bands, spins, vaspfolder='./', kpoints=0):
+    def calculate_gap(self, bands, spins, foldervasprun='./', kpoints=0):
         pass
