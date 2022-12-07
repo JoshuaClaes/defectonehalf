@@ -7,9 +7,9 @@ import warnings
 #import parsevasp
 
 class DFThalfCutoff:
-    def __init__(self,AtomSelfEnPots,PotcarLoc,occband,unoccband,typevasprun='vasp_std',
-                 bulkpotcarloc='',save_eigenval=True ,save_doscar=False, run_in_ps_workdir=False,
-                 save_to_workdir=True, find_gap_auto=False, extrema_type='extrema',vasp_wrapper=None):
+    def __init__(self, AtomSelfEnPots, PotcarLoc, occband, unoccband, typevasprun='vasp_std',
+                 bulkpotcarloc='', save_eigenval=True, save_doscar=False, run_in_ps_workdir=False,
+                 save_to_workdir=True, is_bulk_calc=False, extrema_type='extrema', vasp_wrapper=None):
         """
         Constructor of the the DFThalfCutoff class
         :param AtomSelfEnPots: list of potcarsetup objects
@@ -22,7 +22,8 @@ class DFThalfCutoff:
         :param save_doscar:  if true doscar files will be saved
         :param run_in_ps_workdir: if true vasp will run in the workdir of potcarsetup
         :param save_to_workdir: if true files are saved in workdir/atomname of the current potcarsetup
-        :param find_gap_auto: no implemented! find gaps automaticcaly meaning occband an unoccband are not needed
+        :param is_bulk_calc: if set to true, DFThalfCutoff will optimise the band gap instead of the gaps given by
+        occband and unocc band.
         :param extrema_type: string with the type of extrema we're looking for. Option: extrema(default) or ext,
          maximum or max, minimum or min
          :param vasp_wrapper: vasp_wrapper object to interact with vasp on the system. There are some example
@@ -31,12 +32,14 @@ class DFThalfCutoff:
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
         self.atoms_self_En_pots = AtomSelfEnPots
-        self.potcar_loc = PotcarLoc     # list of potcar location corresponding to each atom
-        self.bulk_potcar_loc = bulkpotcarloc # Bulk potcar location, this parameter is only required for defect runs and should remain onchanged for bulk
+        self.potcar_loc = PotcarLoc # list of potcar location corresponding to each atom
 
-        self.unoccband = unoccband  # list [index unoccupied band, spin, kpoint(optional)] (up=1, down=2)
-        self.occband   = occband    # list [index occupied band  , spin, kpoint(optional)] (up=1, down=2)
-        self.find_gap_auto = find_gap_auto # if this is set to true the band gap will be calculated using pymatgen
+        # Bulk potcar location, this parameter is only required for defect runs and should remain onchanged for bulk
+        self.bulk_potcar_loc = bulkpotcarloc
+
+        self.unoccband = unoccband      # list [index unoccupied band, spin, kpoint(optional)] (up=1, down=2)
+        self.occband   = occband        # list [index occupied band  , spin, kpoint(optional)] (up=1, down=2)
+        self.is_bulk_calc = is_bulk_calc  # if this is set to true the band gap will be calculated using pymatgen
 
         self.extrema_type = extrema_type
         #self.extrema_largest_rc_threshold = 3.5
@@ -166,14 +169,17 @@ class DFThalfCutoff:
         os.system(Makepotcarcommand)
 
     def _calculate_gap(self):
-        bands = [self.occband[0], self.unoccband[0]]
-        spins = [self.occband[1], self.unoccband[1]]
-        if len(self.occband) > 2 and len(self.unoccband > 2):
-            kpoints = [self.occband[2], self.unoccband[2]] # Make kpoints list if given by user
+        if self.is_bulk_calc:
+            gap = self.vasp_wrapper.calculate_bandgap()
         else:
-            kpoints = [0, 0] # default: Gamma point/ kp=0 gap
+            bands = [self.occband[0], self.unoccband[0]]
+            spins = [self.occband[1], self.unoccband[1]]
+            if len(self.occband) > 2 and len(self.unoccband > 2):
+                kpoints = [self.occband[2], self.unoccband[2]] # Make kpoints list if given by user
+            else:
+                kpoints = [0, 0] # default: Gamma point/ kp=0 gap
 
-        gap = self.vasp_wrapper.calculate_gap(bands,spins,vaspfolder=self.foldervasprun, kpoints=kpoints)
+            gap = self.vasp_wrapper.calculate_gap(bands,spins,vaspfolder=self.foldervasprun, kpoints=kpoints)
         return gap
 
     def save_vasp_output_files(self,Vs_potsetup,rc,numdecCut,CutFuncPar):
