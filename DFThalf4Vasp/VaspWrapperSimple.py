@@ -33,7 +33,7 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         """
 
         :param bands: list with the indices of the lower en higher band, [lower band, higher band]
-        :param spins: list containing the spind of the bands. 1=up and 2=down or use strings 'up' and 'down'.
+        :param spins: list containing the spins of the bands. 1=up and 2=down or use strings 'up' and 'down'.
         Example: [1, 2], ['up','down']
         If the input is not a list calculate gap will assume
         that both bands have the same spin.
@@ -49,7 +49,7 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         if not(isinstance(spins,list)):
             spins = [spins, spins] # convert spins to a list
 
-        """Convert spins from strings to intergers"""
+        """Convert spins from strings to integers"""
         for i, spin in enumerate(spins):
             if spin == 'up':
                 spins[i] = 1
