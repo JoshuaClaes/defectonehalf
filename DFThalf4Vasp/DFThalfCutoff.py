@@ -2,7 +2,7 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-from DFThalf4Vasp import VaspWrapperSimple
+from DFThalf4Vasp import VaspWrapperSimple, VaspWrapperAse
 import warnings
 #import parsevasp
 
@@ -26,7 +26,7 @@ class DFThalfCutoff:
         :param extrema_type: string with the type of extrema we're looking for. Option: extrema(default) or ext,
          maximum or max, minimum or min
          :param vasp_wrapper: vasp_wrapper object to interact with vasp on the system. There are some example
-         vasp_wrappers in this project but you might need to make your own.
+         vasp_wrappers in this project but you might need to make your own. Default VaspWrapperSimple, ase: VaspWrapperAse
         """
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
@@ -44,6 +44,8 @@ class DFThalfCutoff:
         # VASP VARIABLES
         if vasp_wrapper == None:
             vasp_wrapper = VaspWrapperSimple.VaspWrapperSimple()
+        elif vasp_wrapper == 'ase'
+            vasp_wrapper = VaspWrapperAse.VaspWrapperAse()
         self.vasp_wrapper = vasp_wrapper
         self.typevasprun   = typevasprun
         self.foldervasprun = None
