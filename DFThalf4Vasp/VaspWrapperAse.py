@@ -85,14 +85,12 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
 
         if kpoints[0] is None or kpoints[0] == 'all':
             # get energies for all kpoints
-            en_low  = bs.energies[0,:,bands[0]]
-            en_high = bs.energies[0,:,bands[1]]
-
+            en_low  = bs.energies[spins[0],:,bands[0]]
+            en_high = bs.energies[spins[1],:,bands[1]]
             gap = np.min(en_high) - np.max(en_low) # calculate inderect gap between bands
         else:
-            en_low  = bs.energies[0,kpoints[0],bands[0]]
-            en_high = bs.energies[0,kpoints[1],bands[1]]
-
+            en_low  = bs.energies[spins[0],kpoints[0],bands[0]]
+            en_high = bs.energies[spins[1],kpoints[1],bands[1]]
             gap = en_high - en_low
 
         return gap
