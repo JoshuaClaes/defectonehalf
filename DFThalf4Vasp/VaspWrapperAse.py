@@ -15,7 +15,22 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
         super().__init__()
 
     def run_vasp(self, foldervasprun, typevasprun):
-        pass
+        # Go vasp run directory
+        oldpath = os.getcwd()
+        os.chdir(foldervasprun)
+
+        # Run vasp
+        if typevasprun == 'vasp_std' or typevasprun == 'std':
+            os.system('srun vasp_std >> vasp.out')
+        elif typevasprun == 'vasp_gam' or typevasprun == 'gam':
+            os.system('srun vasp_gam >> vasp.out')
+        elif typevasprun == 'vasp_ncl' or typevasprun == 'ncl':
+            os.system('srun vasp_ncl >> vasp.out')
+        else:
+            # incase another type is given we try to run the given string
+            os.system(typevasprun)
+        # Go back to original path
+        os.chdir(oldpath)
 
     def calculate_bandgap(self):
         # Get information from previous Vasp run
