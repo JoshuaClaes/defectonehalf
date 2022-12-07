@@ -83,6 +83,7 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
         # Get eigenvalues from vasp calculation
         bs = calc.band_structure()
 
+        # calculate gap
         if kpoints[0] is None or kpoints[0] == 'all':
             # get energies for all kpoints
             en_low  = bs.energies[spins[0],:,bands[0]]
