@@ -34,12 +34,12 @@ class DFThalfCutoff:
         self.potcar_loc = PotcarLoc     # list of potcar location corresponding to each atom
         self.bulk_potcar_loc = bulkpotcarloc # Bulk potcar location, this parameter is only required for defect runs and should remain onchanged for bulk
 
-        self.unoccband = unoccband  # list [index unoccupied band, spin] (up=1, down=2)
-        self.occband   = occband    # list [index occupied band  , spin] (up=1, down=2)
+        self.unoccband = unoccband  # list [index unoccupied band, spin, kpoint(optional)] (up=1, down=2)
+        self.occband   = occband    # list [index occupied band  , spin, kpoint(optional)] (up=1, down=2)
         self.find_gap_auto = find_gap_auto # if this is set to true the band gap will be calculated using pymatgen
 
         self.extrema_type = extrema_type
-        self.extrema_largest_rc_threshold = 3.5
+        #self.extrema_largest_rc_threshold = 3.5
 
         # VASP VARIABLES
         if vasp_wrapper == None:
@@ -166,7 +166,12 @@ class DFThalfCutoff:
     def _calculate_gap(self):
         bands = [self.occband[0], self.unoccband[0]]
         spins = [self.occband[1], self.unoccband[1]]
-        gap = self.vasp_wrapper.calculate_gap(bands,spins,vaspfolder=self.foldervasprun)
+        if len(self.occband) > 2 and len(self.unoccband > 2):
+            kpoints = [self.occband[2], self.unoccband[2]] # Make kpoints list if given by user
+        else:
+            kpoints = [0, 0] # default: Gamma point/ kp=0 gap
+
+        gap = self.vasp_wrapper.calculate_gap(bands,spins,vaspfolder=self.foldervasprun, kpoints=kpoints)
         return gap
 
     def save_vasp_output_files(self,Vs_potsetup,rc,numdecCut,CutFuncPar):
