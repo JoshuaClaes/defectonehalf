@@ -57,7 +57,7 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
                 spins[i] = 2
 
         # Read eigenvalues
-        eign = pd.read_csv(vaspfolder + '/EIGENVAL', delim_whitespace=True, skiprows=8, header=None)
+        eign = pd.read_csv(foldervasprun + '/EIGENVAL', delim_whitespace=True, skiprows=8, header=None)
         # Calculate gap
         gap = eign.iloc[bands[0], spins[0]] - eign.iloc[bands[1], spins[1]]
         return gap
@@ -65,3 +65,4 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
 def calculate_bandgap(self, foldervasprun=None):
     raise Exception('calculate bandgap is not implemeneted in VaspWrapperSimple!\nUse calculate gap instead!')
     return 0
+
