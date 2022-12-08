@@ -174,7 +174,7 @@ class DFThalfCutoff:
         else:
             bands = [self.occband[0], self.unoccband[0]]
             spins = [self.occband[1], self.unoccband[1]]
-            if len(self.occband) > 2 and len(self.unoccband > 2):
+            if len(self.occband) > 2 and len(self.unoccband) > 2:
                 kpoints = [self.occband[2], self.unoccband[2]] # Make kpoints list if given by user
             else:
                 kpoints = [0, 0] # default: Gamma point/ kp=0 gap
