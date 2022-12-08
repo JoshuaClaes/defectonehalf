@@ -1,5 +1,5 @@
 import os
-import pandas as pd
+import numpy as np
 from DFThalf4Vasp import VaspWrapper
 
 class VaspWrapperSimple(VaspWrapper.VaspWrapper):
@@ -43,26 +43,78 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         :return:
         """
 
-        if kpoints != 0:
-            raise Exception('kpoints is not equal to 0!\nWhile VaspWrapperSimple only works for gamma point calculations!')
+        # format input
+        if not (isinstance(spins, list)):
+            spins = [spins, spins]  # convert spins to a list
 
-        if not(isinstance(spins,list)):
-            spins = [spins, spins] # convert spins to a list
-
-        """Convert spins from strings to integers"""
+        # Convert spins from strings to integers and make integers ase compatible
         for i, spin in enumerate(spins):
             if spin == 'up':
-                spins[i] = 1
+                spins[i] = 0
             elif spin == 'down':
-                spins[i] = 2
+                spins[i] = 1
+            elif spin == 1:
+                spins[i] = 0  # Convert index to correct format
+            elif spin == 2:
+                spins[i] = 1  # convert index to correct format
+            else:
+                raise Exception('Invalid spin was given to calculate gap!\nSpin can either be a str containing up or' +
+                                ' down or an integert with 1=up and 2=down')
+
+        if not (isinstance(kpoints, list)):
+            kpoints = [kpoints, kpoints]  # convert kpoints to a list
 
         # Read eigenvalues
-        eign = pd.read_csv(foldervasprun + '/EIGENVAL', delim_whitespace=True, skiprows=8, header=None)
+        _, eign = self._read_eigenvalues(foldervasprun + '/EIGENVAL')
         # Calculate gap
-        gap = eign.iloc[bands[0], spins[0]] - eign.iloc[bands[1], spins[1]]
+        gap = eign[kpoints[0], bands[0], spins[0]] - eign[kpoints[1], bands[1], spins[1]]
         return gap
 
-def calculate_bandgap(self, foldervasprun=None):
-    raise Exception('calculate bandgap is not implemeneted in VaspWrapperSimple!\nUse calculate gap instead!')
-    return 0
+    def calculate_bandgap(self, foldervasprun=None):
+        raise Exception('calculate bandgap is not implemeneted in VaspWrapperSimple!\nUse calculate gap instead!')
 
+    def _read_eigenvalues(self,filename):
+        # This code was written with assistance of openai chatGPT
+        # open the EIGENVAL file
+        with open(filename, "r") as eigenval_file:
+            # skip the first 5 lines of the file (header)
+            for i in range(5):
+                eigenval_file.readline()
+
+            # read the next line to get the number of electrons, k-points, and bands
+            line = eigenval_file.readline()
+            num_electrons, num_kpoints, num_bands = line.split()
+            # num_electrons = int(num_electrons)
+            num_kpoints = int(num_kpoints)
+            num_bands = int(num_bands)
+
+            # initialize empty lists to store the k-point coordinates and eigenvalues
+            kpoint_coords = []
+            eigenvalues = []
+
+            # read the remaining lines of the file
+            for i in range(num_kpoints):
+                # skip the empty line between eigenvalue blocks
+                eigenval_file.readline()
+
+                # read the next line to get the k-point coordinates
+                line = eigenval_file.readline()
+                kpoint_coords.append([float(v) for v in line.split()])
+
+                # initialize an empty list to store the eigenvalues for this k-point
+                kpoint_eigenvalues = []
+
+                # read the eigenvalue lines for this k-point
+                for j in range(num_bands):
+                    line = eigenval_file.readline()
+                    kpoint_eigenvalues.append([float(v) for v in line.split()[1:]])
+
+                # store the eigenvalues for this k-point in the eigenvalues list
+                eigenvalues.append(kpoint_eigenvalues)
+
+        # convert the k-point coordinates and eigenvalues to NumPy arrays
+        kpoint_coords = np.array(kpoint_coords)
+        eigenvalues = np.array(eigenvalues)
+
+        # return the k-point coordinates and eigenvalues
+        return kpoint_coords, eigenvalues
