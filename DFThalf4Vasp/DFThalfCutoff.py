@@ -47,8 +47,6 @@ class DFThalfCutoff:
         # VASP VARIABLES
         if vasp_wrapper == None:
             vasp_wrapper = VaspWrapperSimple.VaspWrapperSimple()
-        elif vasp_wrapper == 'ase':
-            vasp_wrapper = VaspWrapperAse.VaspWrapperAse()
         self.vasp_wrapper = vasp_wrapper
         self.typevasprun   = typevasprun
         self.foldervasprun = None
