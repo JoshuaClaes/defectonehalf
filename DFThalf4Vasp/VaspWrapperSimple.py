@@ -74,7 +74,7 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
             en_high = eign[:, bands[1], spins[1]]
             gap = np.min(en_high) - np.max(en_low)  # calculate inderect gap between bands
         else:
-            gap = eign[kpoints[0], bands[0], spins[0]] - eign[kpoints[1], bands[1], spins[1]]
+            gap = eign[kpoints[1], bands[1], spins[1]] - eign[kpoints[0], bands[0], spins[0]]
         return gap
 
     def calculate_bandgap(self, foldervasprun=None):
