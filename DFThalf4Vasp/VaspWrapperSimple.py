@@ -38,8 +38,9 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         If the input is not a list calculate gap will assume
         that both bands have the same spin.
         :param vaspfolder: path to folder were vasp calculation ran.
-        :param kpoints: list with kpoints, VaspWrapperSimple can currently only deal with gamma point calculation so
-        this should always be set to 0.
+        :param kpoints: list of 2 indices with the kpoints for which the gap should be calculated. If a single interger
+        is give calculate_gap will calculate the gap a the same kpoints.
+        Altenatively: kpoints can be set to None or all which will calculate the indirect gap between the 2 given bands
         :return:
         """
 
@@ -67,7 +68,13 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         # Read eigenvalues
         _, eign = self._read_eigenvalues(foldervasprun + '/EIGENVAL')
         # Calculate gap
-        gap = eign[kpoints[0], bands[0], spins[0]] - eign[kpoints[1], bands[1], spins[1]]
+        if kpoints[0] is None or kpoints[0] == 'all':
+            # get energies for all kpoints
+            en_low  = eign[:, bands[0], spins[0]]
+            en_high = eign[:, bands[1], spins[1]]
+            gap = np.min(en_high) - np.max(en_low)  # calculate inderect gap between bands
+        else:
+            gap = eign[kpoints[0], bands[0], spins[0]] - eign[kpoints[1], bands[1], spins[1]]
         return gap
 
     def calculate_bandgap(self, foldervasprun=None):
