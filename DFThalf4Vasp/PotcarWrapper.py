@@ -20,7 +20,7 @@ def find_nrows(potcarfile):
         for i, line in enumerate(pfile):
             if 'local part\n' in line:
                 firstline = i + 2
-            elif ('gradient corrections used for XC' in line) or ('core charge-density (partial)' in line):
+            elif ('gradient corrections used for XC' in line) or ('core charge-density (partial)' in line) or (' atomic pseudo charge-density' in line):
                 lastline = i
                 break
         if firstline == None:
