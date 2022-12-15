@@ -90,11 +90,20 @@ class PotcarSetup:
             print('Calculation of the self energy potential proceeds with the excisting files!')
 
         # SUBSTRACT
-        if nrowspot==None:
-            nrowspot = self.AW.calc_nrows(atomdir + '/Xi/VTOTAL1')
-        self.Radii = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL1', nrows=nrowspot, skiprows=1) # We need to save this for later
-        pot_xi     = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL1', nrows=nrowspot, skiprows=nrowspot + 3)
-        pot_zeta   = self.AW.read_pot_file(atomdir + '/Zeta/VTOTAL1', nrows=nrowspot, skiprows=nrowspot + 3)
+        if os.path.isfile(atomdir + '/Xi/VTOTAL1'):
+            if nrowspot==None:
+                nrowspot = self.AW.calc_nrows(atomdir + '/Xi/VTOTAL1')
+            self.Radii = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL1', nrows=nrowspot, skiprows=1) # We need to save this for later
+            pot_xi     = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL1', nrows=nrowspot, skiprows=nrowspot + 3)
+            pot_zeta   = self.AW.read_pot_file(atomdir + '/Zeta/VTOTAL1', nrows=nrowspot, skiprows=nrowspot + 3)
+        elif os.path.isfile(atomdir + '/Xi/VTOTAL0'):
+            if nrowspot==None:
+                nrowspot = self.AW.calc_nrows(atomdir + '/Xi/VTOTAL0')
+            self.Radii = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL0', nrows=nrowspot, skiprows=1) # We need to save this for later
+            pot_xi     = self.AW.read_pot_file(atomdir + '/Xi/VTOTAL0', nrows=nrowspot, skiprows=nrowspot + 3)
+            pot_zeta   = self.AW.read_pot_file(atomdir + '/Zeta/VTOTAL0', nrows=nrowspot, skiprows=nrowspot + 3)
+        else:
+            raise Exception('ATOM potential file not found! Your ATOM calculation has likely failed.')
         # We already multiply with these constants to convert from
         # the atom format(Ryd and bohr) to the vasp format (eV and A)
         self.Vs = 4.0 * np.pi * self.ALPHA * (self.BETA ** 3) * (pot_xi - pot_zeta)
