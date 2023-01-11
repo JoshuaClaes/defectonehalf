@@ -8,8 +8,8 @@ import pickle
 #############################################
 workdir  ='Examples/LDA/Cbulk'   # folder in which calculation will be done
 atomname = 'Cbulk_sp0.25'        # label of the atom
-atom     = 'C'                       # Atom symbol
-orbitals = [1, 2]                # number of core and valence eletrons
+atom     = 'C'                   # Atom symbol
+orbitals = [1, 2]                # number of core and valence orbitals. core orbitals: 1s    valence orbitals: 2s 2p
 GSorb    = [orbital.Orbital(n=2, l=0, occ=2.00), orbital.Orbital(n=2, l=1, occ=2.00)] # Ground state orbitals
 EXtype   = 'ca'                   # exchange correlation used in atom (ca=lda, pb=pbe)
 Cbulk_ps = ps.PotcarSetup(workdir, atomname, atom, orbitals, GSorb)
@@ -36,8 +36,8 @@ file.close()
 #############################################
 workdir  ='Examples/PBE/Cbulk'   # folder in which calculation will be done
 atomname = 'Cbulk_sp0.25'        # label of the atom
-atom     = 'C'                       # Atom symbol
-orbitals = [1, 2]                # number of core and valence eletrons
+atom     = 'C'                   # Atom symbol
+orbitals = [1, 2]                # number of core and valence orbitals. core orbitals: 1s    valence orbitals: 2s 2p
 GSorb    = [orbital.Orbital(n=2, l=0, occ=2.00), orbital.Orbital(n=2, l=1, occ=2.00)] # Ground state orbitals
 EXtype   = 'pb'                   # exchange correlation used in atom (ca=lda, pb=pbe)
 Cbulk_ps = ps.PotcarSetup(workdir, atomname, atom, orbitals, GSorb)
