@@ -42,6 +42,7 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
         except ValueError:
             self._remove_problematic_lines_outcar(foldervasprun+'/OUTCAR', 'in kB',
                                                   '  in kB       0.00000     0.00000     0.00000     0.00000     0.00000     0.00000\n')
+            calc = Vasp(directory=foldervasprun, restart=True, xc='lda')
 
         # Not every version of ase has a read_results function somethimes this happens when creating the Vasp object
         try:
