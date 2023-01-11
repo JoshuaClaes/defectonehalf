@@ -1,4 +1,5 @@
 import os
+import fileinput
 import numpy as np
 from ase.calculators.vasp import Vasp
 from ase.dft.bandgap import bandgap
@@ -32,7 +33,17 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
 
     def calculate_bandgap(self,foldervasprun='./'):
         # Get information from previous Vasp run
-        calc = Vasp(directory=foldervasprun, restart=True, xc='lda')
+        """
+        DFT-1/2 introduces large stresses which can be ignored however some version of the ase have problems with this
+        when reading the Vasp calculation. If this does occur we'll replace the problematic line with a dummy line.
+        """
+        try:
+            calc = Vasp(directory=foldervasprun, restart=True, xc='lda')
+        except ValueError:
+            self._remove_problematic_lines_outcar(foldervasprun+'/OUTCAR', 'in kB',
+                                                  '  in kB       0.00000     0.00000     0.00000     0.00000     0.00000     0.00000\n')
+
+        # Not every version of ase has a read_results function somethimes this happens when creating the Vasp object
         try:
             calc.read_results()
         except:
@@ -99,3 +110,16 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
             gap = en_high - en_low
 
         return gap
+
+    def _remove_problematic_lines_outcar(self, outcarfile, prob_string, new_line):
+        """
+        Remove problematic lines from outcarfile and save changes.
+        Args:
+            outcarfile (str): The name of the file to be modified
+            prob_string (str): A string that we are trying to match in the file
+            new_line (str): The string we want to replace the matched prob_string with
+        """
+        for line in fileinput.input(outcarfile, inplace=1):
+            if prob_string in line:
+                line = line.replace(line, new_line)
+            print(line, end='')
