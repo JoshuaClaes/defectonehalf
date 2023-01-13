@@ -98,6 +98,35 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
         shutil.copy(file, workdir + '/vasp_run/' )
     return 0
 
+
+def print_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.01):
+    """
+    Prints the index, position, atom, and orbital characters for all sites in the structure that have a sum of orbital characters above the given threshold.
+
+    Parameters:
+    - projectd_eign: A 4D array of eigenvalues for the projected density of states (PDOS). The first index corresponds to the spin (up or down),
+    the second index corresponds to the band index, the third index corresponds to the site index, and the fourth index corresponds to the orbital index.
+    - bandind: An integer indicating the band index to use.
+    - spin: An integer indicating the spin to use (0 for up, 1 for down).
+    - threshold: A float indicating the threshold for the sum of the orbital characters.
+    Only sites with a sum above this threshold will be printed. This parameter has a default value of 0.01.
+    """
+    # Normalize the eigenvalues for the given spin and band index
+    projected_eign_norm = projected_eign[spin][0,bandind, :, :]/np.sum(projected_eign[spin][0,bandind, :, :])
+
+    # Print a header for the output
+    print('{:<5} {:<35} {:<5} {:<5}'.format('Index', 'Position', 'Atom', 'SPD'))
+
+    # Iterate through the sites in the structure
+    for i, site in enumerate(structure):
+        # Get the orbital characters for the current site and spin
+        cha = projected_eign[spin][0, bandind, i, :]
+
+        # Check if the sum of the orbital characters is above the threshold
+        if np.sum(cha) > threshold:
+            # If above the threshold, print the index, position, atom, and orbital characters
+            print('{:<5} {:<35} {:<5} {:<5}'.format(i, str(site.coords), str(site.species), str(cha)))
+
 #################################
 # HELPER FUNCTIONS
 #################################
