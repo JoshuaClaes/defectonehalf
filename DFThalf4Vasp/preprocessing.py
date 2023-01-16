@@ -114,9 +114,16 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
     normalised the characters to a sum of 0.5) will be included.
     :param group_sym_tol: The maximum absolute difernece between orbital chararcters of the same group.
     """
-    # Normalize the eigenvalues for the given spin and band index
-    projected_eign_norm = projected_eign[spin][0, bandind, :, :] / np.sum(projected_eign[spin][0, bandind, :, :])
+    # Normalize the eigenvalues for the given spin and band index/indices
+    if isinstance(bandind, list):
+        projected_eign_norm = projected_eign[spin][0, bandind[0], :, :]
+        for bi in bandind[1:]:
+            projected_eign_norm += projected_eign[spin][0, bi, :, :]
+        projected_eign_norm = projected_eign_norm / np.sum(projected_eign_norm)
+    else:
+        projected_eign_norm = projected_eign[spin][0, bandind, :, :] / np.sum(projected_eign[spin][0, bandind, :, :])
 
+    # make empty list to save the group of atoms
     contributing_atom_groups = []
     orb_char_groups = []
     element_groups  = []
