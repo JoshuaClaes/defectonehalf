@@ -4,6 +4,7 @@ import shutil
 import numpy as np
 import pymatgen.io.vasp as pmg
 from pymatgen.core import Structure
+from pymatgen.io.vasp import Poscar
 
 import DFThalf4Vasp.potcarsetup as ps
 
@@ -126,6 +127,79 @@ def print_largest_contributors(projected_eign, bandind, spin, structure, thresho
         if np.sum(cha) > threshold:
             # If above the threshold, print the index, position, atom, and orbital characters
             print('{:<5} {:<35} {:<5} {:<5}'.format(i, str(site.coords), str(site.species), str(cha)))
+
+def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_names=None):
+    """
+    Makes a new poscar file with the defect atoms at the bottom. This way the DFT-1/2 potcar file can easily be
+    generated.
+    :param poscar_loc: Path to poscar file
+    :param defect_poscar_loc: The location where the new poscar will be stored
+    :param atom_groups: list of list with each list containing the indices of the defect atoms belonging to a certain
+    group.
+    :param
+    :return: list with names of defect atoms. Default None, the name will be the atoms specie
+    """
+    # load poscar
+    defect_structure = Structure.from_file(poscar_loc)
+
+    # check if defect atoms names where given
+    if defect_atom_names is None:
+        defect_atom_names = []
+        # loop over all groups to fill defect_atom_names
+        for a_group in atom_groups:
+            # defect atom name will be the specie of the first atom in each group. All atoms should have the same
+            # species though.
+            defect_atom_names.append(str(defect_structure[a_group[0]].species))
+
+    # Variables used during the rearrangement of the poscar
+    removed_atom_inds = []
+    poscar_comment  = 'Poscar made by make_defect_poscar: '
+    # line 6 in the poscar, contains all element and the order in which there given. We start with adding the host
+    # material. This only works for mono atomic materials.
+    for i in range(len(defect_structure.species)):
+        # Check if i is a defect atom. If not we found our bulk species
+        # Uses map to check if 'i' is equal to any index in the sublist. Another map is used to do this to all sublist
+        # The any commando will check if any of the results from map gave True as an output.
+        if not(any(list(map(lambda l: any(list(map(lambda n: n==i,l))), atom_groups)))):
+            poscar_elements = str(defect_structure[i].specie.symbol) + '\t'
+            break
+    # line 7 in the poscar containts the number of times each element from line 6 will be present
+    number_atoms_line = str(int( len(defect_structure.species) - sum(map(len,atom_groups)) )) + '\t' # number of bulk atoms
+
+    # Rewrite poscar. We loop over each group of atoms remove them from the poscar and adding them at the end.
+    for i, a_group in enumerate(atom_groups):
+        ag_sort = np.flip(np.sort(a_group)) # sort list from highest to lowest, such that removing atoms is easier
+        for j, atom_ind in enumerate(ag_sort):
+            # If a index below the current one has already been removed we should decrease our current index by 1
+            adjusted_ind = atom_ind
+            for ri in removed_atom_inds:
+                if atom_ind > ri:
+                    adjusted_ind -= 1
+            # Update poscar
+            site = defect_structure[adjusted_ind]     # save site
+            defect_structure.pop(adjusted_ind)        # remove atom
+            defect_structure.append(site.species, site.coords, coords_are_cartesian=True) # add atom at the back of the poscar
+            removed_atom_inds.append(atom_ind)
+
+            # Add element to poscar lines
+            if j == 0:
+                poscar_comment += defect_atom_names[i] + '_' +str(len(a_group)) + ' '
+                poscar_elements += str(defect_structure[i].specie.symbol) + '\t'
+                number_atoms_line += str( int( len(a_group) )) + '\t'
+
+    #
+    # Make new poscar
+    new_poscar = Poscar(defect_structure, comment=poscar_comment)
+    new_poscar.write_file(defect_poscar_loc + '/POSCAR')
+
+    # Change species list in poscar
+    with open(defect_poscar_loc + '/POSCAR', 'r') as f:
+        lines = f.readlines()
+    lines[5] = poscar_elements + '# This line is only correct for monoatomic structure.\n'
+    lines[6] = number_atoms_line + '\n'
+    with open(defect_poscar_loc + '/POSCAR', 'w') as f:
+        f.writelines(lines)
+
 
 #################################
 # HELPER FUNCTIONS
