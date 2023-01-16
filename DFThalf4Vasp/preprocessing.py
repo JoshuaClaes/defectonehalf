@@ -99,7 +99,7 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
         shutil.copy(file, workdir + '/vasp_run/' )
     return 0
 
-def get_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005):
+def get_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001):
     """
     Returns the indices of the largest contributors
 
@@ -110,26 +110,41 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
     - spin: An integer indicating the spin to use (0 for up, 1 for down).
     - threshold: A float indicating the threshold for the sum of the orbital characters.
     Only sites with a sum above this threshold will be printed. This parameter has a default value of 0.005.
+    This values means that any atom with a xi or zeta of 0.01 (the precision of atom our AE code, 0.01 because DFT-1/2
+    normalised the characters to a sum of 0.5) will be included.
+    :param group_sym_tol: The maximum absolute difernece between orbital chararcters of the same group.
     """
     # Normalize the eigenvalues for the given spin and band index
     projected_eign_norm = projected_eign[spin][0, bandind, :, :] / np.sum(projected_eign[spin][0, bandind, :, :])
 
-    contributing_atom_inds = []
+    contributing_atom_groups = []
+    orb_char_groups = []
+    element_groups  = []
     # Iterate through the sites in the structure
     for i, site in enumerate(structure):
         # Get the orbital characters for the current site and spin
-        orbital_characters = projected_eign[spin][0, bandind, i, :]
+        orbital_characters = projected_eign_norm[i,:]
 
         # Check if any oribtal character(s,p,d) of the current site is above the threshold
         if any(list( map(lambda orb_char: orb_char >= threshold,  orbital_characters))):
-            contributing_atom_inds.append(i) # add atom index to contributing atoms
+            #contributing_atom_groups.append(i) # add atom index to contributing atoms
 
-    # Sort atoms in group of according to there contributions. Same orbitals contribution and element goes in the same
-    # group
-    for ai in contributing_atom_inds:
-        pass
+            # Check if there is a group with the same characters and atoms type
+            no_group_found = True
+            for g_ind, char_group in enumerate(orb_char_groups):
+                if  np.sum( np.abs(char_group - orbital_characters)) < group_sym_tol and site.specie.symbol == element_groups[g_ind]:
+                    # if we find such a group add index to this group
+                    contributing_atom_groups[g_ind].append(i)
+                    no_group_found = False
+                    break
+            # If the current site does not belong to a group but has a large enough contribution, a new group will be
+            # created
+            if no_group_found:
+                contributing_atom_groups.append([i])
+                orb_char_groups.append(orbital_characters)
+                element_groups.append(site.specie.symbol)
 
-    return contributing_atom_inds
+    return contributing_atom_groups, orb_char_groups, element_groups
 
 
 
