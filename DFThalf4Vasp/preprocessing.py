@@ -190,14 +190,14 @@ def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_na
     #
     # Make new poscar
     new_poscar = Poscar(defect_structure, comment=poscar_comment)
-    new_poscar.write_file(defect_poscar_loc + '/POSCAR')
+    new_poscar.write_file(defect_poscar_loc)
 
     # Change species list in poscar
     with open(defect_poscar_loc + '/POSCAR', 'r') as f:
         lines = f.readlines()
     lines[5] = poscar_elements + '# This line is only correct for monoatomic structure.\n'
     lines[6] = number_atoms_line + '\n'
-    with open(defect_poscar_loc + '/POSCAR', 'w') as f:
+    with open(defect_poscar_loc, 'w') as f:
         f.writelines(lines)
 
 
