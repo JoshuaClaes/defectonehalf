@@ -174,9 +174,12 @@ def print_largest_contributors(projected_eign, bandind, spin, structure, thresho
 
     # Loop over all groups and print the result of each group
     for ig, group in enumerate(contributing_atom_groups):
-        print('{:<5} {:<5} {:<35} {:<12}'.format('Group', 'Atom', 'SPD','Group size'))
-        print('{:<5} {:<5} {:<35} {:<12}'.format(str(ig+1), str(element_groups[ig]), str(orb_char_groups[ig]),
-                                                str(len(group))))
+        print('{:<5} {:<5} {:<35} {:<12} {:<35}'.format('Group', 'Atom', 'SPD','Group size','Group contribution to bands'))
+        length_group = len(group)
+        percentage_cont = np.round(np.sum(orb_char_groups[ig])*100*length_group,2)
+        print('{:<5} {:<5} {:<35} {:<12} {:<35}'.format(str(ig+1), str(element_groups[ig]), str(orb_char_groups[ig]),
+                                                str(length_group),
+                                                str(percentage_cont) + '%' ))
         print('{:<5} {:<35}'.format('Index', 'Position'))
         for index_element in group:
             print('{:<5} {:<35}'.format(index_element, str(structure[index_element])))
