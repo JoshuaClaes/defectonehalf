@@ -216,10 +216,10 @@ def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_na
         # Uses map to check if 'i' is equal to any index in the sublist. Another map is used to do this to all sublist
         # The any commando will check if any of the results from map gave True as an output.
         if not(any(list(map(lambda l: any(list(map(lambda n: n==i,l))), atom_groups)))):
-            poscar_elements = str(defect_structure[i].specie.symbol) + '\t'
+            poscar_elements = str(defect_structure[i].specie.symbol) + ' '
             break
     # line 7 in the poscar containts the number of times each element from line 6 will be present
-    number_atoms_line = str(int( len(defect_structure.species) - sum(map(len,atom_groups)) )) + '\t' # number of bulk atoms
+    number_atoms_line = str(int( len(defect_structure.species) - sum(map(len,atom_groups)) )) + ' ' # number of bulk atoms
 
     # Rewrite poscar. We loop over each group of atoms remove them from the poscar and adding them at the end.
     for i, a_group in enumerate(atom_groups):
@@ -239,8 +239,8 @@ def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_na
             # Add element to poscar lines
             if j == 0:
                 poscar_comment += defect_atom_names[i] + '_' +str(len(a_group)) + ' '
-                poscar_elements += str(defect_structure[i].specie.symbol) + '\t'
-                number_atoms_line += str( int( len(a_group) )) + '\t'
+                poscar_elements += str(defect_structure[i].specie.symbol) + ' '
+                number_atoms_line += str( int( len(a_group) )) + ' '
 
     #
     # Make new poscar
@@ -250,7 +250,7 @@ def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_na
     # Change species list in poscar
     with open(defect_poscar_loc, 'r') as f:
         lines = f.readlines()
-    lines[5] = poscar_elements + '# This line is only correct for monoatomic structure.\n'
+    lines[5] = poscar_elements + '\n'
     lines[6] = number_atoms_line + '\n'
     with open(defect_poscar_loc, 'w') as f:
         f.writelines(lines)
