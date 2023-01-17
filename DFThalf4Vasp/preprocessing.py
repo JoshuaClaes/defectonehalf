@@ -155,7 +155,7 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
 
 
 
-def print_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005):
+def print_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001):
     """
     Prints the index, position, atom, and orbital characters for all sites in the structure that have a sum of orbital characters above the given threshold.
 
@@ -167,21 +167,25 @@ def print_largest_contributors(projected_eign, bandind, spin, structure, thresho
     - threshold: A float indicating the threshold for the sum of the orbital characters.
     Only sites with a sum above this threshold will be printed. This parameter has a default value of 0.005.
     """
+    # We use get_largest_contributors to find the indices of the largest contributors
+    contributing_atom_groups, orb_char_groups, element_groups = get_largest_contributors(projected_eign, bandind, spin,
+                                                                                         structure, threshold=threshold,
+                                                                                         group_sym_tol=group_sym_tol)
+
+    # Loop over all groups and print the result of each group
+    for ig, group in enumerate(contributing_atom_groups):
+        print('{:<5} {:<5} {:<35} {:<12}'.format('Group', 'Atom', 'SPD','Group size'))
+        print('{:<5} {:<5} {:<35} {:<12}'.format(str(ig+1), str(element_groups[ig]), str(orb_char_groups[ig]),
+                                                str(len(group))))
+        print('{:<5} {:<35}'.format('Index', 'Position'))
+        for index_element in group:
+            print('{:<5} {:<35}'.format(index_element, str(structure[index_element])))
+        print()
+
     # Normalize the eigenvalues for the given spin and band index
     projected_eign_norm = projected_eign[spin][0,bandind, :, :]/np.sum(projected_eign[spin][0,bandind, :, :])
 
-    # Print a header for the output
-    print('{:<5} {:<35} {:<5} {:<5}'.format('Index', 'Position', 'Atom', 'SPD'))
 
-    # Iterate through the sites in the structure
-    for i, site in enumerate(structure):
-        # Get the orbital characters for the current site and spin
-        cha = projected_eign[spin][0, bandind, i, :]
-
-        # Check if the sum of the orbital characters is above the threshold
-        if np.sum(cha) > threshold:
-            # If above the threshold, print the index, position, atom, and orbital characters
-            print('{:<5} {:<35} {:<5} {:<5}'.format(i, str(site.coords), str(site.species), str(cha)))
 
 def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_names=None):
     """
