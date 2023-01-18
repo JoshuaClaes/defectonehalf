@@ -55,8 +55,9 @@ def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_ban
     Xi, Zeta = calc_electron_fraction(Peign=Peign, iocc=iocc, iunocc=iunocc, atominds=atominds)
 
     if print_xi_zeta:
-        print('Xi:\n', Xi)
-        print('Zeta:\n', Zeta)
+        print('{:<20} {:<20}'.format('Xi', 'Zeta'))
+        for i in range(len(Xi)):
+            print('{:<20} {:<20}'.format(str(Xi[i]), str(Zeta[i])))
 
     return Xi, Zeta
 
