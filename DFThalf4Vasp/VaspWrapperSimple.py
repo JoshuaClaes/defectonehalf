@@ -39,7 +39,8 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
         that both bands have the same spin.
         :param vaspfolder: path to folder were vasp calculation ran.
         :param kpoints: list of 2 indices with the kpoints for which the gap should be calculated. If a single interger
-        is give calculate_gap will calculate the gap a the same kpoints.
+        is give calculate_gap will calculate the gap at the same kpoints. Use kpoints all to select all kpoints of the
+        band.
         Altenatively: kpoints can be set to None or all which will calculate the indirect gap between the 2 given bands
         :return:
         """
