@@ -68,14 +68,21 @@ class VaspWrapperSimple(VaspWrapper.VaspWrapper):
 
         # Read eigenvalues
         _, eign = self._read_eigenvalues(foldervasprun + '/EIGENVAL')
-        # Calculate gap
+
+        # Get lowest en higest defect bands at given kpoints
         if kpoints[0] is None or kpoints[0] == 'all':
             # get energies for all kpoints
             en_low  = eign[:, bands[0], spins[0]]
-            en_high = eign[:, bands[1], spins[1]]
-            gap = np.min(en_high) - np.max(en_low)  # calculate inderect gap between bands
         else:
-            gap = eign[kpoints[1], bands[1], spins[1]] - eign[kpoints[0], bands[0], spins[0]]
+            en_low  = eign[kpoints[0], bands[0], spins[0]]
+
+        if kpoints[1] is None or kpoints[1] == 'all':
+            en_high = eign[:, bands[1], spins[1]]
+        else:
+            en_high = eign[kpoints[1], bands[1], spins[1]]
+        # Calculate gap. For this we take the smallest gap
+        gap = np.min(en_high) - np.max(en_low)  # calculate inderect gap between bands
+
         return gap
 
     def calculate_bandgap(self, foldervasprun=None):
