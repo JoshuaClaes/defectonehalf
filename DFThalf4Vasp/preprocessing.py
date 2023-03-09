@@ -113,7 +113,7 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
     Only sites with a sum above this threshold will be printed. This parameter has a default value of 0.005.
     This values means that any atom with a xi or zeta of 0.01 (the precision of atom our AE code, 0.01 because DFT-1/2
     normalised the characters to a sum of 0.5) will be included.
-    :param group_sym_tol: The maximum absolute difernece between orbital chararcters of the same group.
+    :param group_sym_tol: The maximum absolute differnece between orbital chararcters of the same group.
     """
     # Normalize the eigenvalues for the given spin and band index/indices
     if isinstance(bandind, list):
@@ -152,7 +152,20 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
                 orb_char_groups.append(orbital_characters)
                 element_groups.append(site.specie.symbol)
 
-    return contributing_atom_groups, orb_char_groups, element_groups
+    # Sort from largest to lowest contribution
+    total_char_groups = np.sum(orb_char_groups, axis=1)  # Total spd contribution
+    sorted_indices = np.flip(np.argsort(total_char_groups))  # indices to sort from highest to lowest
+
+    # Make new list in this order
+    cag_sorted = []  # contributing atom group sorted
+    ocg_sorted = []  # orbital charaters of each group sorted
+    eg_sorted = []  # chemical element of each group
+    for i in sorted_indices:
+        cag_sorted.append(contributing_atom_groups[i])
+        ocg_sorted.append(orb_char_groups[i])
+        eg_sorted.append(element_groups[i])
+
+    return cag_sorted, ocg_sorted, eg_sorted
 
 
 
