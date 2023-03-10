@@ -78,6 +78,7 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
     :param vaspfiles: list of vasp files location which will be copied to the vasp_run file
     :return:
     """
+    Vs_list = [] # list of all self energies
     for i, atom in enumerate(atoms):
         # Calc Vs
         Vs = ps.PotcarSetup(workdir, atomnames[i], atom, orbitals[i], GSorbs[i], ExCorrAE=EXtype)
@@ -85,6 +86,7 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
 
         # Make potcars
         Vs.make_potcar(potcarfile, cutfuncpar)
+        Vs_list.append(Vs)
 
         # Safe potcar setup object
         file = open(Vs.workdir + '/' +atomnames[i] + '_ps.PotSetup', 'wb')
@@ -98,7 +100,7 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
     # copy vasp files
     for file in vaspfiles:
         shutil.copy(file, workdir + '/vasp_run/' )
-    return 0
+    return Vs_list
 
 def get_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001):
     """
