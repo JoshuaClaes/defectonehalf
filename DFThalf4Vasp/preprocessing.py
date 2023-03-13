@@ -253,17 +253,22 @@ def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_na
             for ri in removed_atom_inds:
                 if atom_ind > ri:
                     adjusted_ind -= 1
+
+            # Add element to poscar lines
+            if j == 0:
+                poscar_comment += defect_atom_names[i] + '_' + str(len(a_group)) + ' '
+                print(i, adjusted_ind, removed_atom_inds, defect_structure[i],
+                      defect_structure[adjusted_ind])  # remove this line
+                poscar_elements += str(defect_structure[adjusted_ind].specie.symbol) + ' '
+                number_atoms_line += str(int(len(a_group))) + ' '
+
             # Update poscar
             site = defect_structure[adjusted_ind]     # save site
             defect_structure.pop(adjusted_ind)        # remove atom
             defect_structure.append(site.species, site.coords, coords_are_cartesian=True) # add atom at the back of the poscar
             removed_atom_inds.append(atom_ind)
 
-            # Add element to poscar lines
-            if j == 0:
-                poscar_comment += defect_atom_names[i] + '_' +str(len(a_group)) + ' '
-                poscar_elements += str(defect_structure[i].specie.symbol) + ' '
-                number_atoms_line += str( int( len(a_group) )) + ' '
+
 
     #
     # Make new poscar
