@@ -257,8 +257,6 @@ def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_na
             # Add element to poscar lines
             if j == 0:
                 poscar_comment += defect_atom_names[i] + '_' + str(len(a_group)) + ' '
-                print(i, adjusted_ind, removed_atom_inds, defect_structure[i],
-                      defect_structure[adjusted_ind])  # remove this line
                 poscar_elements += str(defect_structure[adjusted_ind].specie.symbol) + ' '
                 number_atoms_line += str(int(len(a_group))) + ' '
 
