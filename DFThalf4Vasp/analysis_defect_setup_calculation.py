@@ -177,18 +177,21 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                       typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
                       job_script_header, job_script_footer)
     else:
-        pass
+        _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
+                      GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
+                      typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                      job_script_header, job_script_footer)
 
 
 #################################
 # HELPER FUNCTIONS
 #################################
 def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
-                          GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
+                          GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
                           job_script_header, job_script_footer):
 
-    Vs =  setup_calculation(group_names, elem_all_groups, orbitals, GSorbs, xi_all_groups, zeta_all_groups,
+    Vs = setup_calculation(group_names, elem_all_groups, orbitals, GSorbs, xi_all_groups, zeta_all_groups,
                             workdir_self_en, EXtype, typepotcarfile,cutfuncpar)
 
 
@@ -236,8 +239,7 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
     object form an absolute to a relative path. Since the calculation is assumbe to be run in the vasp_run folder with 
     the workdir folders one level above that.
     '''
-    # xi
-    workdir = Vs.workdir
+    workdir = Vs[0].workdir
     for vs in Vs:
         vs.workdir = '../'
 
@@ -288,143 +290,25 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
     workdir = workdir_self_en + '/xi'
     xi = xi_all_groups
     zeta = np.array(xi_all_groups) * 0
-    Vs_xi = setup_calculation(group_names, elem_all_groups, orbitals, GSorbs, xi, zeta, workdir, EXtype, typepotcarfile,
-                              cutfuncpar)
+    # Set defect bands
+    def_bands_xi = [def_bands[0], [[cbm_ind], def_bands[0][1]]]
+
+    _setup_conventional_run(folder, workdir, xi, zeta, group_names, elem_all_groups, orbitals,
+                          GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_xi,
+                          typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                          job_script_header, job_script_footer)
 
     # zeta
     workdir = workdir_self_en + '/zeta'
     xi = np.array(xi_all_groups) * 0
     zeta = zeta_all_groups
-    Vs_zeta = setup_calculation(group_names, elem_all_groups, orbitals, GSorbs, xi, zeta, workdir, EXtype,
-                                typepotcarfile, cutfuncpar)
-
-
-    #####################
-    # Defect poscar
-    #####################
-    old_poscar_loc = folder + '/POSCAR'
-    new_poscar_loc = Vs_xi[0].workdir + '/vasp_run/POSCAR'
-    # xi
-    make_defect_poscar(old_poscar_loc, new_poscar_loc, all_defect_groups)
-    # zeta
-    shutil.copyfile(new_poscar_loc, Vs_zeta[0].workdir + '/vasp_run/POSCAR')
-
-    #####################
-    # DFThalfCutoff object
-    #####################
-    # locations of pristine potcar files of each element
-    # These are usually dumped on level above the vasp run file
-    Potcar_loc = []
-    for element in elem_all_groups:
-        Potcar_loc.append('../POTCAR_' + element)
-
-    '''
-    string with all potcars which are not altered in the cutoff optimatisation this could be '../POTCAR_Zn ../POTCAR_O
-     for a  defect in ZnO or '../POTCAR_DFThalf_bulk_Zn ../POTCAR_DFThalf_bulk_O' incase we've also want to apply a 
-     bulk correction which is usuallly the case. bulkpotcarloc = potcar_bulk # given input
-    '''
-
-    # The occupied defect band(s)
-    band_ind = def_bands[0][0][0]
-    if def_bands[0][1] == 'up':
-        band_spin = 1
-    elif def_bands[0][1] == 'down':
-        band_spin = 2
-    occband = [band_ind, band_spin]
-
-    # The unoccupied defect band(s)
-    band_ind = def_bands[1][0][0]
-    if def_bands[0][1] == 'up':
-        band_spin = 1
-    elif def_bands[0][1] == 'down':
-        band_spin = 2
-    unoccband = [band_ind, band_spin]
-
-    # Change working directory
-    '''
-    Since the calculation will not run on the same system we need to change the working directory of the potcarstup 
-    object form an absolute to a relative path. Since the calculation is assumbe to be run in the vasp_run folder with 
-    the workdir folders one level above that.
-    '''
-    # xi
-    workdir_xi = Vs_xi[0].workdir
-    for vs in Vs_xi:
-        vs.workdir = '../'
-    # zeta
-    workdir_zeta = Vs_zeta[0].workdir
-    for vs in Vs_zeta:
-        vs.workdir = '../'
-
-    # DFThalfcutoff object for xi
-    # self energies
-    AtomSelfEnPots = Vs_xi
-
     # Set defect bands
-    occband_xi = occband
-    unoccband_xi = [cbm_ind, occband[1]]  # unoccupied band = cbm with same spin as occband
+    def_bands_zeta = [[[vbm_ind], def_bands[1][1]], def_bands[1]]
+    _setup_conventional_run(folder, workdir, xi, zeta, group_names, elem_all_groups, orbitals,
+                          GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_zeta,
+                          typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                          job_script_header, job_script_footer)
 
-    # Make cutoff object
-    cutoff_opt = DFThalfCutoff(AtomSelfEnPots, Potcar_loc, occband_xi, unoccband_xi, typevasprun=typevasprun,
-                               bulkpotcarloc=bulk_potcar,
-                               save_eigenval=save_eigenval, save_doscar=save_doscar)
-
-    # pickle cutoff object
-    file = open(workdir_xi + '/DFThalfCutoff.p', 'wb')
-    pickle.dump(cutoff_opt, file)
-    file.close()
-
-    # DFThalfcutoff object for zeta
-    # self energies
-    AtomSelfEnPots = Vs_zeta
-
-    # Set defect bands
-    occband_zeta = [vbm_ind, unoccband[1]]  # occupied band vbm with same spin as unoccband
-    unoccband_zeta = unoccband
-
-    # Make cutoff object
-    cutoff_opt = DFThalfCutoff(AtomSelfEnPots, Potcar_loc, occband_zeta, unoccband_zeta, typevasprun=typevasprun,
-                               bulkpotcarloc=bulk_potcar,
-                               save_eigenval=save_eigenval, save_doscar=save_doscar)
-
-    # pickle cutoff object
-    file = open(workdir_zeta + '/DFThalfCutoff.p', 'wb')
-    pickle.dump(cutoff_opt, file)
-    file.close()
-
-    #####################
-    # Make job scripts
-    #####################
-    # python script
-    ps_string = '#importing libraries\nimport os\nimport pickle\n\n'  # import libraries
-    ps_string += '#Setup DFThalfCutoff object\n'
-    ps_string += 'with open("../DFThalfCutoff.p","rb") as file: \n\tcutoff_opt = pickle.load(file)\n'  # load DFThalf cutofoptimiser
-    # set additional parameters for cutoff optimisation
-    ps_string += 'cutoff_opt.foldervasprun = os.getcwd()\n'
-    # currently DFThalfCutoff needs this input but this should be handelded more elegant in the future
-    ps_string += '''cut_func_par = {'n':8, 'Cutoff' : 0.0}\n\n#run calculation\n'''
-    ps_string += f'cutoff_opt.find_cutoff({str(rb)}, {str(rf)}, {str(nsteps)}, cut_func_par)'
-
-    # xi
-    # Make python file
-    with open(workdir_xi + '/vasp_run/find_cutoff.py', 'w') as python_script:
-        python_script.write(ps_string)
-
-    # Make job script
-    with open(workdir_xi + '/vasp_run/' + job_script_name, 'w') as job_script_file:
-        job_script_file.write(job_script_header)
-        job_script_file.write('\n\npython find_cutoff.py\n ')
-        job_script_file.write(job_script_footer)
-
-    # zeta
-    # Make python file
-    with open(workdir_zeta + '/vasp_run/find_cutoff.py', 'w') as python_script:
-        python_script.write(ps_string)
-
-    # Make job script
-    with open(workdir_zeta + '/vasp_run/' + job_script_name, 'w') as job_script_file:
-        job_script_file.write(job_script_header)
-        job_script_file.write('\n\npython find_cutoff.py\n ')
-        job_script_file.write(job_script_footer)
 
 
 def _calc_efrac_ngroups(cag_s, ocg_s, n=2):
