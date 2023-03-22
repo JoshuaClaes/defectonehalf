@@ -35,7 +35,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                                save_eigenval: bool = True,
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
                                job_script_header: str = '', job_script_footer: str = '',
-                               job_script_name: str = 'job_script.slurm') -> None:
+                               job_script_name: str = 'job_script.slurm', set_num_groups=None) -> None:
     """
     Function to perform analysis of defect setup calculations.
 
@@ -50,6 +50,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     Optional parameters
     # Defect atoms parameters
     threshold_defect_atoms (float): Threshold for determining defect atoms. Default is 0.005.
+    set_num_groups (int): the number of groups you want returned. This is for a second run where you want less
+    groups than in the default case.
 
     # type of DFT-1/2 run
     decoupled_run (bool): if True a decoupled calculation will be setup, if false a conventional calculation will be
@@ -102,7 +104,9 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     elif def_bands[0][1] == 'down':
         band_spin = Spin.down
 
-    defect_groups_xi, xi, elem_xi = _find_def_atoms(projected_eign, band_ind, band_spin, structure)
+    defect_groups_xi, xi, elem_xi = _find_def_atoms(projected_eign, band_ind, band_spin, structure,
+                                                    threshold_int=threshold_defect_atoms,
+                                                    set_num_groups=set_num_groups)
 
     # Unoccupied bands
     band_ind = def_bands[1][0]
@@ -111,7 +115,9 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     elif def_bands[1][1] == 'down':
         band_spin = Spin.down
 
-    defect_groups_zeta, zeta, elem_zeta = _find_def_atoms(projected_eign, band_ind, band_spin, structure)
+    defect_groups_zeta, zeta, elem_zeta = _find_def_atoms(projected_eign, band_ind, band_spin, structure,
+                                                          threshold_int=threshold_defect_atoms,
+                                                          set_num_groups=set_num_groups)
 
     # We should now combine the groups of xi and zeta. Since there not necessarily the same
     all_defect_groups = defect_groups_xi.copy()
@@ -355,13 +361,16 @@ def _find_def_atoms_from_groups(cag_s, ocg_s, n=2):
         return _find_def_atoms_from_groups(cag_s, ocg_s, n=(n + 1))
 
 
-def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=0.005, min_threshold=1e-5):
+def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=0.005, min_threshold=1e-5,
+                    set_num_groups=None):
     """
     Finds the defect atoms contibuting to a defect bands from the spd projection of each atom on each band.
     projected_eign: the spd projection of each atoms for each band. Obtained from Vasrun object properite .projected_eigenvalues
     band_ind: index of band in projected_eign
     band_spin: pymatgen Spin object
     structure: pymatgen structure object. Mainly used to get the element of each atom
+    set_num_groups: integer with the number of groups you want returned. This is for a second run where you want less
+    groups than in the default case.
     """
     # Get contribution for default parameters
     cag, ocg, eg = get_largest_contributors(projected_eign, band_ind, band_spin, structure, threshold=threshold_int)
@@ -369,9 +378,18 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
     efrac, num_groups = _find_def_atoms_from_groups(cag, ocg)
     # Check results
     if num_groups < len(cag):
-        defect_atoms = cag[0:num_groups] # get n groups with largest contribution
-        defect_elem  = eg[0:num_groups]
-        return defect_atoms, efrac, defect_elem
+        if num_groups is None:
+            defect_atoms = cag[0:num_groups]  # get n groups with largest contribution
+            defect_elem = eg[0:num_groups]
+            return defect_atoms, efrac, defect_elem
+        else:
+            if num_groups < set_num_groups:
+                raise Exception('set_num_groups was chosen too large there are not enough defect groups!')
+            # Return predetermined number of groups
+            defect_atoms = cag[0:set_num_groups]  # get n groups with largest contribution
+            defect_elem  = eg[0:set_num_groups]
+            return defect_atoms, efrac, defect_elem
+
     else:
         # In this case the groups from get_largest_contributors did not contain all defect groups
         new_threshold = threshold_int/10 # we lower our threshold to increase the amount of group
@@ -381,7 +399,9 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
             if threshold_int==min_threshold:
                 raise Exception('Threshold find_def_atoms reached minimum threshold!')
             else:
-                return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=min_threshold, min_threshold=min_threshold)
+                return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=min_threshold,
+                                       min_threshold=min_threshold)
         else:
             # Do a run with new threshold
-            return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=new_threshold, min_threshold=min_threshold)
+            return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=new_threshold,
+                                   min_threshold=min_threshold)
