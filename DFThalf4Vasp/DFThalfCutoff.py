@@ -241,7 +241,6 @@ class DFThalfCutoff:
         # Find extrema
         if rcmax > smallest_rc and rcmax < largest_rc:
             # if rcmax is not at the edge we found the extrema
-            self.extrema_type = 'maximum' # for additional sweeps we should keep look at maxima
             return rcmax, max_gap, indmax
 
         elif rcmax == largest_rc and rcmin == 0:
@@ -249,5 +248,4 @@ class DFThalfCutoff:
 
         else:
             # if rc max is at the edges we return the minimum
-            self.extrema_type = 'minimum' # for additional sweeps we should keep look at minimum
             return rcmin, min_gap, indmin
