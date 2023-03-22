@@ -28,10 +28,9 @@ class Orb_info:
             raise Exception('Input of Orb_info is not correct!')
 
 
-def analysis_defect_setup_calc(folder: str, def_bands: List[List[int, str]], vbm_ind: int, cbm_ind: int,
-                               orb_info_sc: List[Orb_info], threshold_defect_atoms: float = 0.005,
+def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: int,
+                               orb_info_sc: List[Orb_info], workdir_self_en: str, threshold_defect_atoms: float = 0.005,
                                decoupled_run: bool = False, EXtype: str = 'ca', typepotcarfile: str = 'lda',
-                               workdir_self_en: str = 'LDA/full_preperation_script_test/H_int_T/',
                                bulk_potcar: str = '../POTCAR_bulk ', typevasprun: str = 'vasp_gam',
                                save_eigenval: bool = True,
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
@@ -46,6 +45,7 @@ def analysis_defect_setup_calc(folder: str, def_bands: List[List[int, str]], vbm
     vbm_ind (int): Index of the VBM in the bulk calculation.
     cbm_ind (int): Index of the CBM in the bulk calculation.
     orb_info_sc (List[Orb_info]): List of Orb_info objects for each element in the unit cell.
+    workdir_self_en (str): Working directory for self energy.
 
     Optional parameters
     # Defect atoms parameters
@@ -58,7 +58,7 @@ def analysis_defect_setup_calc(folder: str, def_bands: List[List[int, str]], vbm
     # Self energy parameter
     EXtype (str): Type of self energy. Default is 'ca'.
     typepotcarfile (str): Name of the POTCAR file. Default is 'lda'.
-    workdir_self_en (str): Working directory for self energy. Default is 'LDA/full_preperation_script_test/H_int_T/'.
+
 
     # DFThalfCutoff parameters
     bulk_potcar (str): String with all POTCARs which are not altered in the cutoff optimization. Default is '../POTCAR_bulk '.
@@ -76,7 +76,6 @@ def analysis_defect_setup_calc(folder: str, def_bands: List[List[int, str]], vbm
 
     Returns:
     None
-    :param decoupled_run:
     """
     #####################
     # Load calculation
