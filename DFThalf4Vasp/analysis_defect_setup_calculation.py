@@ -171,15 +171,13 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                 raise Exception(
                     f'Some defect atoms are {element} which is an element which is not present in orb_info_sc!')
 
-        if decoupled_run:
-            _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups,
-                                  orbitals,
-                                  GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind,
-                                  cbm_ind,
-                                  typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                                  job_script_header, job_script_footer)
-        else:
-            pass
+    if decoupled_run:
+        _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
+                      GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
+                      typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                      job_script_header, job_script_footer)
+    else:
+        pass
 
 
 #################################
