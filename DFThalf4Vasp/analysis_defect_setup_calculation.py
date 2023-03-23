@@ -1,11 +1,12 @@
 from typing import List
 import pickle
+import logging
 import shutil
 import numpy as np
 import pymatgen.io.vasp as pmg
 from pymatgen.core import Structure
 from pymatgen.electronic_structure.core import Spin
-from DFThalf4Vasp.preprocessing import print_largest_contributors, get_largest_contributors, calc_electron_fraction
+from DFThalf4Vasp.preprocessing import get_largest_contributors, calc_electron_fraction
 from DFThalf4Vasp.preprocessing import setup_calculation
 from DFThalf4Vasp.preprocessing import make_defect_poscar
 from DFThalf4Vasp.DFThalfCutoff import DFThalfCutoff
@@ -35,7 +36,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                                save_eigenval: bool = True,
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
                                job_script_header: str = '', job_script_footer: str = '',
-                               job_script_name: str = 'job_script.slurm', set_num_groups=None, print_output=True) -> None:
+                               job_script_name: str = 'job_script.slurm', set_num_groups=None, print_output=True,
+                               incar_loc=None, kpoints_loc=None                               ) -> None:
     """
     Function to perform analysis of defect setup calculations.
 
@@ -78,6 +80,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
 
     # Extra parameters
     print_output (bool): if True print some intermediate results
+    incar_loc (string): location of INCAR file for calculation. Defeault None. If None INCAR will be copied from folder
+    kpoints_loc (string): location of KPOINTS file for calculation. Defeault None. If None KPOINTS will be copied from folder
 
     Returns:
     None
@@ -190,12 +194,12 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
         _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                       GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
                       typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                      job_script_header, job_script_footer)
+                      job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
     else:
         _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                       GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
                       typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                      job_script_header, job_script_footer)
+                      job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
 
 
 #################################
@@ -204,7 +208,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
 def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer):
+                          job_script_header, job_script_footer, incar_loc = None, kpoints_loc = None):
 
     Vs = setup_calculation(group_names, elem_all_groups, orbitals, GSorbs, xi_all_groups, zeta_all_groups,
                             workdir_self_en, EXtype, typepotcarfile,cutfuncpar)
@@ -216,6 +220,23 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
     old_poscar_loc = folder + '/POSCAR'
     new_poscar_loc = Vs[0].workdir + '/vasp_run/POSCAR'
     make_defect_poscar(old_poscar_loc, new_poscar_loc, all_defect_groups)
+
+    #####################
+    # Other input files (Incar & kpoints)
+    #####################
+    if incar_loc is None:
+        # copy incar from original folder
+        shutil.copyfile(folder + '/INCAR', Vs[0].workdir + '/vasp_run/INCAR')
+    else:
+        # copy incar given by user
+        shutil.copyfile(incar_loc, Vs[0].workdir + '/vasp_run/INCAR')
+
+    if kpoints_loc is None:
+        # copy kpoints from original folder
+        shutil.copyfile(folder + '/KPOINTS', Vs[0].workdir + '/vasp_run/KPOINTS')
+    else:
+        # copy kpoints given by user
+        shutil.copyfile(kpoints_loc, Vs[0].workdir + '/vasp_run/KPOINTS')
 
     #####################
     # DFThalfCutoff object
@@ -300,7 +321,7 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
 def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer):
+                          job_script_header, job_script_footer, incar_loc=None, kpoints_loc=None):
     # xi
     workdir = workdir_self_en + '/xi'
     xi = xi_all_groups
@@ -311,7 +332,7 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
     _setup_conventional_run(folder, workdir, xi, zeta, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_xi,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer)
+                          job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
 
     # zeta
     workdir = workdir_self_en + '/zeta'
@@ -322,7 +343,7 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
     _setup_conventional_run(folder, workdir, xi, zeta, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_zeta,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer)
+                          job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
 
 
 
@@ -343,7 +364,7 @@ def _calc_efrac_ngroups(cag_s, ocg_s, n=2):
     return efrac
 
 
-import logging
+
 
 
 def _find_def_atoms_from_groups(cag_s, ocg_s, n=2):
