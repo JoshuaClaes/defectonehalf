@@ -35,7 +35,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                                save_eigenval: bool = True,
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
                                job_script_header: str = '', job_script_footer: str = '',
-                               job_script_name: str = 'job_script.slurm', set_num_groups=None) -> None:
+                               job_script_name: str = 'job_script.slurm', set_num_groups=None, print_output=True) -> None:
     """
     Function to perform analysis of defect setup calculations.
 
@@ -75,6 +75,9 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     job_script_header (str): Header for the job script. Default is an empty string.
     job_script_footer (str): Footer for the job script. Default is an empty string.
     job_script_name (str): Name of the job script. Default is 'job_script.slurm'.
+
+    # Extra parameters
+    print_output (bool): if True print some intermediate results
 
     Returns:
     None
@@ -142,6 +145,12 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
             xi_all_groups = np.concatenate((xi_all_groups, [np.zeros(3)]))
             zeta_all_groups = np.concatenate((zeta_all_groups, [zeta[i]]))
             elem_all_groups.append(elem_zeta[i])
+
+    if print_output:
+        print('======================\nInfo xi\n======================')
+        print(f'Elements defect groups:\n{elem_xi} \nIndices defect atoms:\n{defect_groups_xi} \nxi\n{xi}')
+        print('\n======================\nInfo zeta\n======================')
+        print(f'Elements defect groups:\n{elem_zeta} \nIndices defect atoms:\n{defect_groups_zeta} \nxi\n{zeta}')
 
     #####################
     # The self energy
@@ -388,6 +397,7 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
             # Return predetermined number of groups
             defect_atoms = cag[0:set_num_groups]  # get n groups with largest contribution
             defect_elem  = eg[0:set_num_groups]
+            efrac = _calc_efrac_ngroups(cag, ocg, n=set_num_groups)
             return defect_atoms, efrac, defect_elem
 
     else:
