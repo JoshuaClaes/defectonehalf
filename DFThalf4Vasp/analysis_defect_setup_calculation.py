@@ -113,6 +113,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     elif def_bands[0][1] == 'down':
         band_spin = Spin.down
 
+    logging.debug('Finding defect groups for xi')
     defect_groups_xi, xi, elem_xi = _find_def_atoms(projected_eign, band_ind, band_spin, structure,
                                                     threshold_int=threshold_defect_atoms,
                                                     set_num_groups=set_num_groups)
@@ -124,6 +125,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     elif def_bands[1][1] == 'down':
         band_spin = Spin.down
 
+    logging.debug('Finding defect groups for zeta')
     defect_groups_zeta, zeta, elem_zeta = _find_def_atoms(projected_eign, band_ind, band_spin, structure,
                                                           threshold_int=threshold_defect_atoms,
                                                           set_num_groups=set_num_groups)
@@ -156,7 +158,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
         print('======================\nInfo xi\n======================')
         print(f'Elements defect groups:\n{elem_xi} \nIndices defect atoms:\n{defect_groups_xi} \nxi\n{xi}')
         print('\n======================\nInfo zeta\n======================')
-        print(f'Elements defect groups:\n{elem_zeta} \nIndices defect atoms:\n{defect_groups_zeta} \nxi\n{zeta}')
+        print(f'Elements defect groups:\n{elem_zeta} \nIndices defect atoms:\n{defect_groups_zeta} \nzeta\n{zeta}')
 
     #####################
     # The self energy
@@ -302,7 +304,7 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
     # set additional parameters for cutoff optimisation
     ps_string += 'cutoff_opt.foldervasprun = os.getcwd()\n'
     # currently DFThalfCutoff needs this input but this should be handelded more elegant in the future
-    ps_string += f'''cut_func_par = {'n':{cutfuncpar['n']}, 'Cutoff' : 0.0}\n\n#run calculation\n'''
+    ps_string += '''cut_func_par = 'n': ''' +  f'{cutfuncpar["n"]}' + ''', 'Cutoff' : [0.0]}\n\n#run calculation\n'''
     ps_string += f'cutoff_opt.find_cutoff({str(rb)}, {str(rf)}, {str(nsteps)}, cut_func_par)'
 
     # Make python file
@@ -414,7 +416,6 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
             defect_elem = eg[0:num_groups]
             return defect_atoms, efrac, defect_elem
         else:
-            print(num_groups, set_num_groups)
             if num_groups < set_num_groups:
                 raise Exception('set_num_groups was chosen too large there are not enough defect groups!')
             # Return predetermined number of groups
@@ -433,8 +434,8 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
                 raise Exception('Threshold find_def_atoms reached minimum threshold!')
             else:
                 return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=min_threshold,
-                                       min_threshold=min_threshold)
+                                       min_threshold=min_threshold, set_num_groups=set_num_groups)
         else:
             # Do a run with new threshold
             return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=new_threshold,
-                                   min_threshold=min_threshold)
+                                   min_threshold=min_threshold, set_num_groups=set_num_groups)
