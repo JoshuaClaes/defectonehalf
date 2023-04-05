@@ -32,6 +32,7 @@ class Orb_info:
 def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: int,
                                orb_info_sc: List[Orb_info], workdir_self_en: str, threshold_defect_atoms: float = 0.005,
                                decoupled_run: bool = False, EXtype: str = 'ca', typepotcarfile: str = 'lda',
+                               cutfuncpar = {'Cutoff': [0], 'n': 8},
                                bulk_potcar: str = '../POTCAR_bulk ', typevasprun: str = 'vasp_gam',
                                save_eigenval: bool = True,
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
@@ -62,7 +63,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     # Self energy parameter
     EXtype (str): Type of self energy. Default is 'ca'.
     typepotcarfile (str): Name of the POTCAR file. Default is 'lda'.
-
+    cutfuncpar (dict): Allows to pregenerate more potcar file by changing the Cutoff list or change the power of the
+    trimming function n.
 
     # DFThalfCutoff parameters
     bulk_potcar (str): String with all POTCARs which are not altered in the cutoff optimization. Default is '../POTCAR_bulk '.
@@ -165,10 +167,6 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     # These are extra input parameters given at the beginning
     # EXtype  = 'ca'
     # potcarfile = 'lda'
-    cutfuncpar = {
-        'Cutoff': [0],  # We let the cluster make all potcars
-        'n': 8
-    }
 
     for i, group in enumerate(all_defect_groups):
         # group name indexofgroup_element_numberofelement. Index of group is such that all created folders are ordered
@@ -304,7 +302,7 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
     # set additional parameters for cutoff optimisation
     ps_string += 'cutoff_opt.foldervasprun = os.getcwd()\n'
     # currently DFThalfCutoff needs this input but this should be handelded more elegant in the future
-    ps_string += '''cut_func_par = {'n':8, 'Cutoff' : 0.0}\n\n#run calculation\n'''
+    ps_string += f'''cut_func_par = {'n':{cutfuncpar['n']}, 'Cutoff' : 0.0}\n\n#run calculation\n'''
     ps_string += f'cutoff_opt.find_cutoff({str(rb)}, {str(rf)}, {str(nsteps)}, cut_func_par)'
 
     # Make python file
