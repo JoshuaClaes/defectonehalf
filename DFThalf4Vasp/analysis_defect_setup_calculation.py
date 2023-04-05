@@ -404,13 +404,17 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
     cag, ocg, eg = get_largest_contributors(projected_eign, band_ind, band_spin, structure, threshold=threshold_int)
     # Find defect groups and electron fractions
     efrac, num_groups = _find_def_atoms_from_groups(cag, ocg)
-    # Check results
+    # Check results if all groups where found. This is done by requiring that the number of groups found by
+    # get_largest_contributors is larger than the number of groups found by _find_def_atoms_from_groups. If this is not
+    # the case the threshold of get_largest_contributors should be smaller
     if num_groups < len(cag):
-        if num_groups is None:
+        # Check if user wants a certain number of groups. If not use all groups found
+        if set_num_groups is None:
             defect_atoms = cag[0:num_groups]  # get n groups with largest contribution
             defect_elem = eg[0:num_groups]
             return defect_atoms, efrac, defect_elem
         else:
+            print(num_groups, set_num_groups)
             if num_groups < set_num_groups:
                 raise Exception('set_num_groups was chosen too large there are not enough defect groups!')
             # Return predetermined number of groups
