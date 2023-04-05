@@ -304,7 +304,7 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
     # set additional parameters for cutoff optimisation
     ps_string += 'cutoff_opt.foldervasprun = os.getcwd()\n'
     # currently DFThalfCutoff needs this input but this should be handelded more elegant in the future
-    ps_string += '''cut_func_par = 'n': ''' +  f'{cutfuncpar["n"]}' + ''', 'Cutoff' : [0.0]}\n\n#run calculation\n'''
+    ps_string += '''cut_func_par = {'n': ''' +  f'{cutfuncpar["n"]}' + ''', 'Cutoff' : [0.0]}\n\n#run calculation\n'''
     ps_string += f'cutoff_opt.find_cutoff({str(rb)}, {str(rf)}, {str(nsteps)}, cut_func_par)'
 
     # Make python file
