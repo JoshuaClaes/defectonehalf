@@ -7,7 +7,8 @@ from DFThalf4Vasp import VaspWrapperSimple
 class DFThalfCutoff:
     def __init__(self, AtomSelfEnPots, PotcarLoc, occband, unoccband, typevasprun='vasp_std',
                  bulkpotcarloc='', save_eigenval=True, save_doscar=False, run_in_ps_workdir=False,
-                 save_to_workdir=True, is_bulk_calc=False, extrema_type='extrema', vasp_wrapper=None):
+                 save_to_workdir=True, is_bulk_calc=False, extrema_type='extrema', vasp_wrapper=None,
+                 save_other_outputs=[]):
         """
         Constructor of the the DFThalfCutoff class
         :param AtomSelfEnPots: list of potcarsetup objects
@@ -26,6 +27,7 @@ class DFThalfCutoff:
          maximum or max, minimum or min
          :param vasp_wrapper: vasp_wrapper object to interact with vasp on the system. There are some example
          vasp_wrappers in this project but you might need to make your own. Default VaspWrapperSimple, ase: VaspWrapperAse
+         :param save_other_outputs: list containing the names of other files that need to be saved
         """
         # DFT-1/2 VARIABLES
         # list with potcarsetup objects of all the diffrent atoms.
@@ -55,6 +57,7 @@ class DFThalfCutoff:
         self.save_to_workdir = save_to_workdir
         self.save_eigenval = save_eigenval
         self.save_doscar   = save_doscar
+        self.save_other_outputs = save_other_outputs
 
 
 
@@ -198,6 +201,12 @@ class DFThalfCutoff:
                 os.makedirs(save_folder + '/DOSCARS')
             shutil.copy(self.foldervasprun + '/DOSCAR',
                         save_folder + '/DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
+
+        for file in self.save_other_outputs:
+            if not os.path.isdir(save_folder + '/' + file):
+                os.makedirs(save_folder + '/' + file)
+            shutil.copy(self.foldervasprun + '/' + file,
+                        save_folder + '/' + file + '/'+ file + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
 
     def get_rext_gap(self, rc_cutoff_df):
         if self.extrema_type == 'extrema' or self.extrema_type == 'ext':
