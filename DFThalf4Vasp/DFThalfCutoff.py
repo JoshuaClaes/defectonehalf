@@ -203,10 +203,10 @@ class DFThalfCutoff:
                         save_folder + '/DOSCARS/DOSCAR' + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
 
         for file in self.save_other_outputs:
-            if not os.path.isdir(save_folder + '/' + file):
-                os.makedirs(save_folder + '/' + file)
+            if not os.path.isdir(save_folder + '/other_outputs'):
+                os.makedirs(save_folder + '/other_outputs')
             shutil.copy(self.foldervasprun + '/' + file,
-                        save_folder + '/' + file + '/'+ file + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
+                        save_folder + '/other_outputs/' + file + '_rc_' + str(np.round(rc, numdecCut)) + '_n_' + str(CutFuncPar['n']))
 
     def get_rext_gap(self, rc_cutoff_df):
         if self.extrema_type == 'extrema' or self.extrema_type == 'ext':
