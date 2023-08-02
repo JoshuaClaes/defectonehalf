@@ -87,7 +87,7 @@ class DFThalfCutoff:
                     elif rcext == rf_atom:
                         raise Exception('The extreme gap is found at rc max!\n Increase rcext to get a proper gap')
                     else:
-                        # this should never happen
+                        # this can happen when _find_extrema_gap does not find a gap.
                         raise Exception('An unexpected extremal cutoff was found')
                     print('Current extreme gap for ', pot_setup.atomname, ' is ', np.round(ext_gap,4), 'eV and was found at rc', rcext, ' a0',
                           flush=True)
@@ -151,7 +151,13 @@ class DFThalfCutoff:
         rc_cutoff_df = rc_cutoff_df.sort_values('Cutoff',axis=0) # sort to maintain the order of RC
         rc_cutoff_df = rc_cutoff_df.reset_index(drop=True)
         # Find extrema
-        rcext, ext_gap, indext = self.get_rext_gap(rc_cutoff_df)
+        try:
+            rcext, ext_gap, indext = self.get_rext_gap(rc_cutoff_df)
+        except Warning:
+            print('No extrema was found! rcext ext_gap and indext are set to None.')
+            rcext = None
+            ext_gap = None
+            indext = None
 
         return cutoff_df, rcext, ext_gap, indext, RC
 
