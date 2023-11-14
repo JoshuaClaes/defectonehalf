@@ -236,9 +236,7 @@ def make_defect_poscar(poscar_loc, defect_poscar_loc,atom_groups, defect_atom_na
     # material. This only works for mono atomic materials.
     for i in range(len(defect_structure.species)):
         # Check if i is a defect atom. If not we found our bulk species
-        # Uses map to check if 'i' is equal to any index in the sublist. Another map is used to do this to all sublist
-        # The any commando will check if any of the results from map gave True as an output.
-        if not(any(list(map(lambda l: any(list(map(lambda n: n==i,l))), atom_groups)))):
+        if not(_check_index_in_sublist(i, atom_groups)):
             poscar_elements = str(defect_structure[i].specie.symbol) + ' '
             break
     # line 7 in the poscar containts the number of times each element from line 6 will be present
@@ -343,3 +341,10 @@ def calc_electron_fraction_fullinput(Peign, iocc,iunocc,atominds, mlt=None):
 
     return  Efrac
 
+def _check_index_in_sublist(index, indexlist):
+    # Checks if index is in any sublist of list
+    for sublist in indexlist:
+        for i in sublist:
+            if i == index:
+                return True
+    return False
