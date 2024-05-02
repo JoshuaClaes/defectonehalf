@@ -180,7 +180,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
         # This is somewhat tricky because this depends from atoms to atoms and on the specific potcar that is being use and
         # thus the user should supply this information for each atom in the unit cell
 
-        # We loop over all elemnts until we find a matching element
+        # We loop over all elements until we find a matching element
         for o, orb in enumerate(orb_info_sc):
             if element == orb.element:
                 orbitals.append(orb.core_val)
@@ -350,7 +350,8 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
 def _calc_efrac_ngroups(cag_s, ocg_s, n=2):
     """
     This function will return all the elecron fractions xi and zeta of the first groups ins cag_s and ocg_s
-    cag_s: a list of list with the indices of a group of atoms contributinig to the defect orbitals. Usually this list should be sorted
+    cag_s: a list of list with the indices of a group of atoms contributinig to the defect orbitals.
+    Usually this list should be sorted. cag stands for contributing atom groups
     ocg_s: the orbital contribution of each group
     n: the number of groups for which an electron fraction needs to be calculated
     """
@@ -370,7 +371,7 @@ def _calc_efrac_ngroups(cag_s, ocg_s, n=2):
 def _find_def_atoms_from_groups(cag_s, ocg_s, n=2):
     """
     Finds the k groups contributiong more than 0.01 to the defect bands.
-    We'll start by only considering the 2 largest groups. If the second group has a xi or zeta < 0.01 they'll only the first group will be
+    We'll start by only considering the 2 largest groups. If the second group has a xi or zeta < 0.01 then only the first group will be
     considered as defect atoms. If this is not the case we'll add another group until we find a group n for which xi and zeta<0.01
     When we have this group we keep the n-1 groups with a xi and zeta >= 0.01
     """
@@ -383,11 +384,11 @@ def _find_def_atoms_from_groups(cag_s, ocg_s, n=2):
         # return all efracs and n the size of the given groups
         # -> this means to few groups were given and one should lower the threshold to find defect atoms
         logging.warning(
-            'Not enough groups were given to find_def_atom! Def atoms should be rerun with a large amout of groups')
+            'Not enough groups were given to find_def_atom! Def atoms should be rerun with a large amount of groups')
         # We still return this output which other function can use to know a large amount of groups should be submitted
         return efrac, n
     else:
-        # In case where we do not have a electron fraction < 0.01 we need to include an extra group
+        # In case where we do not have an electron fraction < 0.01 we need to include an extra group
         return _find_def_atoms_from_groups(cag_s, ocg_s, n=(n + 1))
 
 
@@ -395,7 +396,7 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
                     set_num_groups=None):
     """
     Finds the defect atoms contibuting to a defect bands from the spd projection of each atom on each band.
-    projected_eign: the spd projection of each atoms for each band. Obtained from Vasrun object properite .projected_eigenvalues
+    projected_eign: the spd projection of each atoms for each band. Obtained from Vasprun object property .projected_eigenvalues
     band_ind: index of band in projected_eign
     band_spin: pymatgen Spin object
     structure: pymatgen structure object. Mainly used to get the element of each atom
@@ -408,7 +409,9 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
     efrac, num_groups = _find_def_atoms_from_groups(cag, ocg)
     # Check results if all groups where found. This is done by requiring that the number of groups found by
     # get_largest_contributors is larger than the number of groups found by _find_def_atoms_from_groups. If this is not
-    # the case the threshold of get_largest_contributors should be smaller
+    # the case it is possible that there are more group that _find_def_atoms_from_groups could find but did not because
+    # they were not included by get_largest_contributors. This means the threshold of get_largest_contributors should be
+    # lowered
     if num_groups < len(cag):
         # Check if user wants a certain number of groups. If not use all groups found
         if set_num_groups is None:
