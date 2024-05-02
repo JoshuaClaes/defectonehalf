@@ -32,7 +32,7 @@ class Orb_info:
 def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: int,
                                orb_info_sc: List[Orb_info], workdir_self_en: str, threshold_defect_atoms: float = 0.005,
                                decoupled_run: bool = False, EXtype: str = 'ca', typepotcarfile: str = 'lda',
-                               cutfuncpar = {'Cutoff': [0], 'n': 8},
+                               cutfuncpar=None,
                                bulk_potcar: str = '../POTCAR_bulk ', typevasprun: str = 'vasp_gam',
                                save_eigenval: bool = True,
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
@@ -88,9 +88,14 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     Returns:
     None
     """
+
+    if cutfuncpar is None:
+        cutfuncpar = {'Cutoff': [0], 'n': 8}
+
     #####################
     # Load calculation
     #####################
+
     structure = Structure.from_file(folder + '/POSCAR')
     try:
         vasprun = pmg.Vasprun(folder + '/vasprun.xml', parse_potcar_file=False, parse_projected_eigen=True)
@@ -156,9 +161,11 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
 
     if print_output:
         print('======================\nInfo xi\n======================')
-        print(f'Elements defect groups:\n{elem_xi} \nIndices defect atoms:\n{defect_groups_xi} \nxi\n{xi}')
+        #print(f'Elements defect groups:\n{elem_xi} \nIndices defect atoms:\n{defect_groups_xi} \nxi\n{xi}')
+        print(f'Elements defect groups:\n{elem_all_groups} \nIndices defect atoms:\n{all_defect_groups} \nxi\n{xi_all_groups}')
         print('\n======================\nInfo zeta\n======================')
-        print(f'Elements defect groups:\n{elem_zeta} \nIndices defect atoms:\n{defect_groups_zeta} \nzeta\n{zeta}')
+        #print(f'Elements defect groups:\n{elem_zeta} \nIndices defect atoms:\n{defect_groups_zeta} \nzeta\n{zeta}')
+        print(f'Elements defect groups:\n{elem_all_groups} \nIndices defect atoms:\n{all_defect_groups} \nzeta\n{zeta_all_groups}')
 
     #####################
     # The self energy
