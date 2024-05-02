@@ -159,12 +159,36 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
             zeta_all_groups = np.concatenate((zeta_all_groups, [zeta[i]]))
             elem_all_groups.append(elem_zeta[i])
 
+    # Check if the selected number of groups was found
+    if set_num_groups is not None:
+        if len(all_defect_groups) < set_num_groups:
+            logging.warning(
+                f'Only {len(all_defect_groups)} groups were found by analysis_defect_setup_calculation. '
+                f'Expected {set_num_groups} groups. Consider raising the threshold_defect_atoms parameter.'
+                f' Continuing with {len(all_defect_groups)} groups.')
+        elif len(all_defect_groups) > set_num_groups:
+            logging.warning(
+                f'More than {set_num_groups} groups were found by analysis_defect_setup_calculation. '
+                f'The {set_num_groups} with the highest contribution will be used for further calculations.'
+                f'This warning can occur when the {set_num_groups} largest contribution groups found by _find_def_atoms'
+                f' are different for xi and zeta!')
+            # log warning with old xi and zeta
+            logging.warning(f'Old groups: {all_defect_groups}\nOld xi: {xi_all_groups} \nOld zeta: {zeta_all_groups}')
+            # Add xi and zeta contributions and sort by total contribution then take the first set_num_groups
+            total_contributions = np.sum(xi_all_groups, axis=1) + np.sum(zeta_all_groups, axis=1)
+            sorted_indices = np.argsort(total_contributions)[::-1]
+            all_defect_groups = [all_defect_groups[i] for i in sorted_indices[:set_num_groups]]
+            xi_all_groups = xi_all_groups[sorted_indices[:set_num_groups]]
+            zeta_all_groups = zeta_all_groups[sorted_indices[:set_num_groups]]
+            elem_all_groups = [elem_all_groups[i] for i in sorted_indices[:set_num_groups]]
+            # Add warning that his case has not been proparly tested
+            logging.warning('This case has not been proparly tested and should be checked by the user!')
+
+
     if print_output:
         print('======================\nInfo xi\n======================')
-        #print(f'Elements defect groups:\n{elem_xi} \nIndices defect atoms:\n{defect_groups_xi} \nxi\n{xi}')
         print(f'Elements defect groups:\n{elem_all_groups} \nIndices defect atoms:\n{all_defect_groups} \nxi\n{xi_all_groups}')
         print('\n======================\nInfo zeta\n======================')
-        #print(f'Elements defect groups:\n{elem_zeta} \nIndices defect atoms:\n{defect_groups_zeta} \nzeta\n{zeta}')
         print(f'Elements defect groups:\n{elem_all_groups} \nIndices defect atoms:\n{all_defect_groups} \nzeta\n{zeta_all_groups}')
 
     #####################
@@ -364,7 +388,7 @@ def _calc_efrac_ngroups(cag_s, ocg_s, n=2):
     """
     # Calc the multiplicity of each orbital character i.e. the number of atoms in each groups
     n_cag_s = cag_s[0:n]
-    multiplicity = list(map(len, cag_s))
+    multiplicity = list(map(len, n_cag_s))
     # The orbital characters of relevant group
     n_ocg_s = ocg_s[0:n]
     # Calculate electron fraction
@@ -427,7 +451,13 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
             return defect_atoms, efrac, defect_elem
         else:
             if num_groups < set_num_groups:
-                raise Exception('set_num_groups was chosen too large there are not enough defect groups!')
+                # Although it is possible this was only a problem for xi or zeta thus it should not stop the program.
+                logging.warning(f'_find_def_atoms only found {num_groups} groups. Expected {set_num_groups} groups.'
+                                'Program continues with the groups found.')
+                defect_atoms = cag[0:num_groups]  # get n groups with largest contribution
+                defect_elem = eg[0:num_groups]
+                return defect_atoms, efrac, defect_elem
+                #raise Exception('set_num_groups was chosen too large there are not enough defect groups!')
             # Return predetermined number of groups
             defect_atoms = cag[0:set_num_groups]  # get n groups with largest contribution
             defect_elem  = eg[0:set_num_groups]
