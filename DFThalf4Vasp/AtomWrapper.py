@@ -40,7 +40,11 @@ class AtomWrapper:
             else:
                 raise Exception('Atomic symbol not recognised!')
             f.write('       0.0       0.0       0.0       0.0       0.0       0.0\n')
-            f.write(4*' ' + str(orbitals[0])+ 4*' ' + str(orbitals[1])+'\n')
+            if orbitals[0] > 9:
+                # In this case we have a doulbe digit number of core orbitals and we need less spaces before this number
+                f.write(3 * ' ' + str(orbitals[0]) + 4 * ' ' + str(orbitals[1]) + '\n')
+            else:
+                f.write(4*' ' + str(orbitals[0])+ 4*' ' + str(orbitals[1])+'\n')
             for occ in occupation:
                 f.write(4*' ' + str(occ['n']) + 4*' '+ str(occ['l']) + 6*' ' + str(np.round(occ['occupation'],2))
                         + '      0.00' +'\n')
