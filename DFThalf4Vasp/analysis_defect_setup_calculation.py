@@ -38,7 +38,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
                                job_script_header: str = '', job_script_footer: str = '',
                                job_script_name: str = 'job_script.slurm', set_num_groups=None, print_output=True,
-                               incar_loc=None, kpoints_loc=None                               ) -> None:
+                               incar_loc=None, kpoints_loc=None, potcar_loc_base=None) -> None:
     """
     Function to perform analysis of defect setup calculations.
 
@@ -223,14 +223,16 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
 
     if decoupled_run:
         _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
-                      GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
-                      typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                      job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
+                              GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
+                              typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                              job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
+                              potcar_loc_base=potcar_loc_base)
     else:
         _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
-                      GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
-                      typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                      job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
+                                GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
+                                typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                                job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
+                                potcar_loc_base=potcar_loc_base)
 
 
 #################################
@@ -239,8 +241,42 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
 def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer, incar_loc = None, kpoints_loc = None):
+                          job_script_header, job_script_footer, incar_loc = None, kpoints_loc = None,
+                          potcar_loc_base = None):
+    """
+    This function sets up a conventional run for the DFT-1/2 method.
 
+    Parameters:
+    folder (str): The directory containing the DFT of bulk DFT-1/2 calculation.
+    workdir_self_en (str): The working directory for self energy.
+    xi_all_groups (np.array): The electron fractions to be removed for each group of atoms contributing to the defect orbitals.
+    zeta_all_groups (np.array): The electron fractions to be added for each group of atoms contributing to the defect orbitals.
+    group_names (list): The names of the groups of atoms contributing to the defect orbitals.
+    elem_all_groups (list): The elements of the groups of atoms contributing to the defect orbitals.
+    orbitals (list): The orbitals for each element in the unit cell.
+    GSorbs (list): The ground state occupation of the valence orbitals for each element in the unit cell.
+    EXtype (str): The type of exchange correlation used in atom.
+    typepotcarfile (str): The name of the POTCAR file.
+    cutfuncpar (dict): The for the cutoff function in DFT-1/2 method.
+    all_defect_groups (list): The indices of the atoms in the defect groups.
+    def_bands (list): The indices of the defect bands.
+    typevasprun (str): The type of VASP run.
+    bulk_potcar (str): The location of the POTCAR file for the bulk calculation.
+    save_eigenval (bool): Whether to save the eigenvalues file.
+    save_doscar (bool): Whether to save the DOS file.
+    rb (float): The beginning of the cutoff.
+    rf (float): The end of the cutoff.
+    nsteps (list): List with number of points for each step.
+    job_script_name (str): The name of the job script.
+    job_script_header (str): The header for the job script.
+    job_script_footer (str): The footer for the job script.
+    incar_loc (str, optional): The location of the INCAR file for the calculation. If None, the INCAR file will be copied from the folder.
+    kpoints_loc (str, optional): The location of the KPOINTS file for the calculation. If None, the KPOINTS file will be copied from the folder.
+    potcar_loc_base (str, optional): The base location of the POTCAR file.
+
+    Returns:
+    None
+    """
     Vs = setup_calculation(group_names, elem_all_groups, orbitals, GSorbs, xi_all_groups, zeta_all_groups,
                             workdir_self_en, EXtype, typepotcarfile,cutfuncpar)
 
@@ -276,7 +312,10 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
     # These are usually dumped on level above the vasp run file
     Potcar_loc = []
     for element in elem_all_groups:
-        Potcar_loc.append('../POTCAR_' + element)
+        if potcar_loc_base is None:
+            Potcar_loc.append(f'../POTCAR_{element}')
+        else:
+            Potcar_loc.append(f'{potcar_loc_base}/POTCAR_{element}')
 
     '''
     string with all potcars which are not altered in the cutoff optimatisation this could be '../POTCAR_Zn ../POTCAR_O
@@ -352,7 +391,12 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
 def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer, incar_loc=None, kpoints_loc=None):
+                          job_script_header, job_script_footer, incar_loc=None, kpoints_loc=None, potcar_loc_base=None):
+    # Check potcar_loc_base. If this is None set it to ../../ such that potcar files can be shared between the xi and
+    # zeta calculations
+    if potcar_loc_base is None:
+        potcar_loc_base = '../../'
+
     # xi
     workdir = workdir_self_en + '/xi'
     xi = xi_all_groups
@@ -363,7 +407,8 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
     _setup_conventional_run(folder, workdir, xi, zeta, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_xi,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
+                          job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
+                            potcar_loc_base=potcar_loc_base)
 
     # zeta
     workdir = workdir_self_en + '/zeta'
@@ -374,7 +419,8 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
     _setup_conventional_run(folder, workdir, xi, zeta, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_zeta,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc)
+                          job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
+                            potcar_loc_base=potcar_loc_base)
 
 
 
