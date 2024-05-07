@@ -73,6 +73,10 @@ def decoupled_analysis(folder, atomnames, E_bg, atom_symbols=None, colors=None, 
     # Find the optimal cutoff for xi and get a dataframe with the values
     rc, max_gap, df_cutsweep = find_optimal_cutoff(folder + '/xi', atomnames, print_output=print_output,
                                                    extrema_type=extrema_type)
+    # Store sweep data in dictionary
+    sweepdata = {'xi': {'rc': rc, 'max_gap': max_gap, 'df_cutsweep': df_cutsweep}}
+
+
     if make_plot:
         # Create a figure with two subplots, one for xi and one for zeta
         fig, ax = plt.subplots(1, 2, figsize=[2 * 8, 1 * 8])
@@ -88,6 +92,9 @@ def decoupled_analysis(folder, atomnames, E_bg, atom_symbols=None, colors=None, 
     # Find the optimal cutoff for zeta and get a dataframe with the values
     rc, max_gap, df_cutsweep = find_optimal_cutoff(folder + '/zeta', atomnames, print_output=print_output,
                                                    extrema_type=extrema_type)
+    # Store sweep data in dictionary
+    sweepdata['zeta'] = {'rc': rc, 'max_gap': max_gap, 'df_cutsweep': df_cutsweep}
+
     if make_plot:
         # Plot the values in the dataframe
         plot_cutoff_sweep(df_cutsweep=df_cutsweep, atomnames=atomnames, title=title_zeta, colors=colors, labels=atom_symbols, ax=ax[1])
@@ -103,5 +110,5 @@ def decoupled_analysis(folder, atomnames, E_bg, atom_symbols=None, colors=None, 
         print('\nEgap =', Egap)
 
     # Return the values of Egap, gap_occ_CBM, and gap_unocc_VBM
-    return Egap, gap_occ_CBM, gap_unocc_VBM
+    return Egap, gap_occ_CBM, gap_unocc_VBM, sweepdata
 
