@@ -102,7 +102,8 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
         shutil.copy(file, workdir + '/vasp_run/' )
     return Vs_list
 
-def get_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001):
+def get_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001,
+                             kpoint_index=0):
     """
     Returns the indices of the largest contributors
 
@@ -112,6 +113,7 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
     - bandind: An integer or list of integers indicating the band index to use.
     - spin: An integer indicating the spin to use (0 for up, 1 for down).
     - threshold: A float indicating the threshold for the sum of the orbital characters.
+    - kpoint_index: An integer indicating the kpoint index to use. This parameter has a default value of 0 i.e. the Gamma point
     Only sites with a sum above this threshold will be printed. This parameter has a default value of 0.005.
     This values means that any atom with a xi or zeta of 0.01 (the precision of atom our AE code, 0.01 because DFT-1/2
     normalised the characters to a sum of 0.5) will be included.
@@ -119,12 +121,12 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
     """
     # Normalize the eigenvalues for the given spin and band index/indices
     if isinstance(bandind, list):
-        projected_eign_norm = projected_eign[spin][0, bandind[0], :, :].copy()
+        projected_eign_norm = projected_eign[spin][kpoint_index, bandind[0], :, :].copy()
         for bi in bandind[1:]:
-            projected_eign_norm += projected_eign[spin][0, bi, :, :]
+            projected_eign_norm += projected_eign[spin][kpoint_index, bi, :, :]
         projected_eign_norm = projected_eign_norm / np.sum(projected_eign_norm)
     else:
-        projected_eign_norm = projected_eign[spin][0, bandind, :, :].copy() / np.sum(projected_eign[spin][0, bandind, :, :])
+        projected_eign_norm = projected_eign[spin][kpoint_index, bandind, :, :].copy() / np.sum(projected_eign[spin][kpoint_index, bandind, :, :])
 
     # make empty list to save the group of atoms
     contributing_atom_groups = []
@@ -171,7 +173,7 @@ def get_largest_contributors(projected_eign, bandind, spin, structure, threshold
 
 
 
-def print_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001):
+def print_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001, kpoint_index=0):
     """
     Prints the index, position, atom, and orbital characters for all sites in the structure that have a sum of orbital characters above the given threshold.
 
@@ -181,12 +183,14 @@ def print_largest_contributors(projected_eign, bandind, spin, structure, thresho
     - bandind: An integer indicating the band index to use.
     - spin: An integer indicating the spin to use (0 for up, 1 for down).
     - threshold: A float indicating the threshold for the sum of the orbital characters.
+    - kpoint_index: An integer indicating the kpoint index to use. This parameter has a default value of 0 i.e. the Gamma point
     Only sites with a sum above this threshold will be printed. This parameter has a default value of 0.005.
     """
     # We use get_largest_contributors to find the indices of the largest contributors
     contributing_atom_groups, orb_char_groups, element_groups = get_largest_contributors(projected_eign, bandind, spin,
                                                                                          structure, threshold=threshold,
-                                                                                         group_sym_tol=group_sym_tol)
+                                                                                         group_sym_tol=group_sym_tol,
+                                                                                         kpoint_index=kpoint_index)
 
     # Loop over all groups and print the result of each group
     for ig, group in enumerate(contributing_atom_groups):
