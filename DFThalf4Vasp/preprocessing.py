@@ -8,7 +8,7 @@ from pymatgen.io.vasp import Poscar
 
 import DFThalf4Vasp.potcarsetup as ps
 
-def print_band_characters(bandind, atomind, Peign, structure):
+def print_band_characters(bandind, atomind, Peign, structure, kp=0):
     if not (isinstance(atomind, list)):
         atomind = [atomind]
     for bi in bandind:
@@ -18,10 +18,10 @@ def print_band_characters(bandind, atomind, Peign, structure):
             bi = [bi]
         for ia in atomind:
             #print(Peign[0, bi, ia])
-            print('\t\t', np.average(Peign[0, bi, ia], 0), structure[ia])
+            print('\t\t', np.average(Peign[kp, bi, ia], 0), structure[ia])
 
 
-def calc_electron_fraction(Achar=None, mlt=None, Peign=None, iocc=None,iunocc=None,atominds=None,numdec=2):
+def calc_electron_fraction(Achar=None, mlt=None, Peign=None, iocc=None,iunocc=None,atominds=None,numdec=2, kp=0):
     """
     This function calculates the fraction of an electron (Xi and Zeta) that needs to be
     substracted of each orbital of each atom for a defect dft-1/2 calculation
@@ -29,16 +29,22 @@ def calc_electron_fraction(Achar=None, mlt=None, Peign=None, iocc=None,iunocc=No
     Achar:    A list of list with each list containing the character of each
               atom ie [[Cs,Cp,Cd],[Ns,Np,Nd]]
     mlt:      A list containing the multiplicity of each atom
+    Peign:    A projected eigenvalue object from pymatgen
+    iocc:     index occupied orbital
+    iunocc:   index unoccupied orbital
+    atominds: indeces of all atoms involved
+    numdec:   number of decimals to round to
+    kp:       kpoint index. Default 0 this is usually the gamma point
     """
 
     if not(isinstance(Achar,type(None)) ):
         Efrac = calc_electron_fraction_basic(Achar, mlt=mlt)
     elif not(isinstance(Peign,type(None))):
-        Efrac = calc_electron_fraction_fullinput(Peign,iocc,iunocc,atominds,mlt)
+        Efrac = calc_electron_fraction_fullinput(Peign,iocc,iunocc,atominds,mlt, kp=kp)
     Efrac = np.round(Efrac,numdec)
     return Efrac
 
-def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_band_chars=True, print_xi_zeta=False):
+def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_band_chars=True, print_xi_zeta=False, kp=0):
     # load structure
     structure = Structure.from_file(folder + "/POSCAR")
 
@@ -52,7 +58,7 @@ def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_ban
         print_band_characters([iocc, iunocc],atominds, Peign, structure)
 
     # Calculate electron fractions
-    Xi, Zeta = calc_electron_fraction(Peign=Peign, iocc=iocc, iunocc=iunocc, atominds=atominds)
+    Xi, Zeta = calc_electron_fraction(Peign=Peign, iocc=iocc, iunocc=iunocc, atominds=atominds, kp=kp)
 
     if print_xi_zeta:
         print('{:<20} {:<20}'.format('Xi', 'Zeta'))
@@ -333,7 +339,7 @@ def calc_electron_fraction_basic(Achar, mlt=None):
 
     return Efrac
 
-def calc_electron_fraction_fullinput(Peign, iocc,iunocc,atominds, mlt=None):
+def calc_electron_fraction_fullinput(Peign, iocc,iunocc,atominds, mlt=None, kp=0):
     """
     Allows to calculate the electron fraction a more lazy manner using more inputs.
     :param Peign: projected eigenvalue object from pymatgen
@@ -341,6 +347,7 @@ def calc_electron_fraction_fullinput(Peign, iocc,iunocc,atominds, mlt=None):
     :param iunocc: index unoccupied orbital
     :param atominds: indeces of all atoms involved
     :param mlt: list with multiplicity of each atoms. If none is give the multiplicty of each atom is assumed to be 1
+    :param kp: kpoint index
     :return:
     """
 
@@ -352,9 +359,9 @@ def calc_electron_fraction_fullinput(Peign, iocc,iunocc,atominds, mlt=None):
     char_occ   = []
     char_unocc = []
     for i, ai in enumerate(atominds):
-        co = np.average(Peign[0, iocc  , ai], 0)
+        co = np.average(Peign[kp, iocc  , ai], 0)
         char_occ.append(co)
-        cu = np.average(Peign[0, iunocc, ai],0)
+        cu = np.average(Peign[kp, iunocc, ai],0)
         char_unocc.append(cu)
 
     Xi = calc_electron_fraction_basic(char_occ  , mlt=mlt)
