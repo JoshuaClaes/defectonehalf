@@ -325,18 +325,12 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
 
     # The occupied defect band(s)
     band_ind = def_bands[0][0][0]
-    if def_bands[0][1] == 'up':
-        band_spin = 1
-    elif def_bands[0][1] == 'down':
-        band_spin = 2
+    band_spin = _get_band_spin(def_bands[0])
     occband = [band_ind, band_spin]
 
     # The unoccupied defect band(s)
     band_ind = def_bands[1][0][0]
-    if def_bands[0][1] == 'up':
-        band_spin = 1
-    elif def_bands[0][1] == 'down':
-        band_spin = 2
+    band_spin = _get_band_spin(def_bands[1])
     unoccband = [band_ind, band_spin]
 
     # Change working directory
@@ -525,3 +519,11 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
             # Do a run with new threshold
             return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=new_threshold,
                                    min_threshold=min_threshold, set_num_groups=set_num_groups)
+
+def _get_band_spin(def_band):
+    if def_band[1] == 'up':
+        return 1
+    elif def_band[1] == 'down':
+        return 2
+    else:
+        raise ValueError(f"Unexpected spin value: {def_band[1]}")
