@@ -67,7 +67,8 @@ def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_ban
 
     return Xi, Zeta
 
-def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXtype, potcarfile, cutfuncpar, vaspfiles = [] ):
+def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXtype, potcarfile, cutfuncpar,
+                      vaspfiles=None):
     """
     This function setups a folder to prefrom a cutoff sweep from DFThalfCutoff
     :param atomnames: list with atom labels
@@ -84,6 +85,10 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
     :param vaspfiles: list of vasp files location which will be copied to the vasp_run file
     :return:
     """
+    # Set vaspfiles to empty list if None
+    if vaspfiles is None:
+        vaspfiles = []
+
     Vs_list = [] # list of all self energies
     for i, atom in enumerate(atoms):
         # Calc Vs
@@ -102,10 +107,10 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
         # make vasp run folder
         if i == 0 and not(os.path.isdir(Vs.workdir + '/vasp_run')):
             # setup vasp calcualtion
-            os.mkdir(Vs.workdir + '/vasp_run')
+            os.makedirs(Vs.workdir + '/vasp_run')
     # copy vasp files
     for file in vaspfiles:
-        shutil.copy(file, workdir + '/vasp_run/' )
+        shutil.copy(file, f'{Vs_list[0].workdir}/vasp_run/' )
     return Vs_list
 
 def get_largest_contributors(projected_eign, bandind, spin, structure, threshold=0.005, group_sym_tol=0.001,
