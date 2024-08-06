@@ -1,3 +1,5 @@
+import os
+import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -82,30 +84,39 @@ def find_lue(eign, tol=5e-3):
 
     return lue, ind_lue, spin
 
-def find_optimal_cutoff(folder, atomnames, print_output=False, cutoff_filename = 'CutoffOpt.csv',
-                        extrema_type='extrema'):
+
+
+def find_optimal_cutoff(folder, atomnames=None, print_output=False, cutoff_filename='CutoffOpt.csv', extrema_type='extrema'):
     """
-    Looks for the optimal cut parameters aswell as maximum gaps for a set of atoms within a defect
-    :param folder:
-    :param atomnames:
-    :param print_output:
+    Looks for the optimal cut parameters as well as maximum gaps for a set of atoms within a defect
+    :param folder: Folder containing the data
+    :param atomnames: List of atom names or None to auto-detect
+    :param print_output: Whether to print the output
+    :param cutoff_filename: Filename of the cutoff data
+    :param extrema_type: Type of extrema to find ('extrema', 'maximum', 'minimum')
     :return: list of rc, list of maximum gaps, list of all dataframes
     """
-    rc_list     = []
+    if atomnames is None:
+        # List all subfolders in the given folder
+        subfolders = [f.name for f in os.scandir(folder) if f.is_dir()]
+        # Filter subfolders to match the format <integer>_<symbol_atom>_<other_integer>
+        pattern = re.compile(r'^\d+_[A-Za-z]+_\d+$')
+        atomnames = sorted([name for name in subfolders if pattern.match(name)], key=lambda x: int(x.split('_')[0]))
+
+    rc_list = []
     max_gap_list = []
-    gapdf_list  = []
+    gapdf_list = []
     for name in atomnames:
         # read csv files with gap data
-        gap = pd.read_csv(folder + '/' + name + '/' + cutoff_filename)  # read csv file with gap as a function of rc
+        gap = pd.read_csv(os.path.join(folder, name, cutoff_filename))  # read csv file with gap as a function of rc
         # find extrema
-        rcext, ext_gap, indext = find_extrema_gap(gap,extrema_type)
-        # save dat in appropriate structure
+        rcext, ext_gap, indext = find_extrema_gap(gap, extrema_type)
+        # save data in appropriate structure
         rc_list.append(rcext)
         max_gap_list.append(ext_gap)
         gapdf_list.append(gap)
         if print_output:
-            print('The extreme gap of ', name, 'is ', ext_gap, 'eV and is found at r_c = ',
-                  rcext, 'a.u.')
+            print('The extreme gap of ', name, 'is ', ext_gap, 'eV and is found at r_c = ', rcext, 'a.u.')
 
     return rc_list, max_gap_list, gapdf_list
 
