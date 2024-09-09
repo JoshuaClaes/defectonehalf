@@ -175,15 +175,22 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
             # log warning with old xi and zeta
             logging.warning(f'Old groups: {all_defect_groups}\nOld xi: {xi_all_groups} \nOld zeta: {zeta_all_groups}')
             # Add xi and zeta contributions and sort by total contribution then take the first set_num_groups
-            total_contributions = np.sum(xi_all_groups, axis=1) + np.sum(zeta_all_groups, axis=1)
-            sorted_indices = np.argsort(total_contributions)[::-1]
-            all_defect_groups = [all_defect_groups[i] for i in sorted_indices[:set_num_groups]]
-            xi_all_groups = xi_all_groups[sorted_indices[:set_num_groups]]
-            zeta_all_groups = zeta_all_groups[sorted_indices[:set_num_groups]]
-            elem_all_groups = [elem_all_groups[i] for i in sorted_indices[:set_num_groups]]
-            # Add warning that his case has not been proparly tested
-            logging.warning('This case has not been proparly tested and should be checked by the user!')
+            kwargs = {'xi_all_groups': xi_all_groups, 'zeta_all_groups': zeta_all_groups,
+                      'all_defect_groups': all_defect_groups, 'elem_all_groups': elem_all_groups,
+                      'set_num_groups': set_num_groups}
+            xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups = _select_top_groups(**kwargs)
 
+    # As extra information we print the total electron fraction removed. This can somewhat deviate from 0.50 because of rounding errors
+    # Calculate multiplicity for each group
+    multiplicity = np.array([len(group) for group in all_defect_groups])[:, np.newaxis]
+
+    # Calculate total contributions considering multiplicity
+    xi_sum = np.sum(xi_all_groups * multiplicity)
+    zeta_sum = np.sum(zeta_all_groups * multiplicity)
+
+    logging.debug(f'Sum of removed electron fractions:\nxi:\t{xi_sum}\nzeta:\t{zeta_sum}')
+    if np.abs(0.5-xi_sum) > 0.05 or np.abs(0.5-zeta_sum) > 0.05:
+        logging.warning(f'Electron fraction of xi or zeta deviates significantly(more than 0.05) from 0.5.\nCheck your output carefully!')
 
     if print_output:
         print('======================\nInfo xi\n======================')
@@ -435,10 +442,6 @@ def _calc_efrac_ngroups(cag_s, ocg_s, n=2):
     efrac = calc_electron_fraction(Achar=n_ocg_s, mlt=multiplicity)
     return efrac
 
-
-
-
-
 def _find_def_atoms_from_groups(cag_s, ocg_s, n=2):
     """
     Finds the k groups contributiong more than 0.01 to the defect bands.
@@ -527,3 +530,38 @@ def _get_band_spin(def_band):
         return 2
     else:
         raise ValueError(f"Unexpected spin value: {def_band[1]}")
+
+def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, set_num_groups):
+    # Add xi and zeta contributions and sort by total contribution then take the first set_num_groups
+    total_contributions = np.sum(xi_all_groups, axis=1) + np.sum(zeta_all_groups, axis=1)
+    sorted_indices = np.argsort(total_contributions)[::-1]
+    all_defect_groups = [all_defect_groups[i] for i in sorted_indices[:set_num_groups]]
+    xi_all_groups = xi_all_groups[sorted_indices[:set_num_groups]]
+    zeta_all_groups = zeta_all_groups[sorted_indices[:set_num_groups]]
+    elem_all_groups = [elem_all_groups[i] for i in sorted_indices[:set_num_groups]]
+
+    # Calculate multiplicity for each group
+    multiplicity = np.array([len(group) for group in all_defect_groups])[:, np.newaxis]
+
+    # Calculate total contributions considering multiplicity
+    xi_sum = np.sum(xi_all_groups * multiplicity)
+    zeta_sum = np.sum(zeta_all_groups * multiplicity)
+
+    # Renormalize xi and zeta
+    xi_all_groups = xi_all_groups * (0.5 / xi_sum)
+    zeta_all_groups = zeta_all_groups * (0.5 / zeta_sum)
+
+    # Round xi and zeta to two decimals
+    xi_all_groups = np.round(xi_all_groups, 2)
+    zeta_all_groups = np.round(zeta_all_groups, 2)
+
+    # Round xi and zeta to two decimals
+    xi_all_groups = np.round(xi_all_groups, 2)
+    zeta_all_groups = np.round(zeta_all_groups, 2)
+    logging.warning(f'New renormalized xi and zeta values:\nxi: {xi_all_groups}\nzeta: {zeta_all_groups}')
+
+    # Add warning that this case has not been properly tested
+    logging.warning('This case has not been properly tested and should be checked by the user!')
+
+    return xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups
+
