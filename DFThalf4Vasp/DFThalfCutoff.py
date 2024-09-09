@@ -7,8 +7,8 @@ from DFThalf4Vasp import VaspWrapperSimple
 class DFThalfCutoff:
     def __init__(self, AtomSelfEnPots, PotcarLoc, occband, unoccband, typevasprun='vasp_std',
                  bulkpotcarloc='', save_eigenval=True, save_doscar=False, run_in_ps_workdir=False,
-                 save_to_workdir=True, is_bulk_calc=False, extrema_type='extrema', vasp_wrapper=None,
-                 save_other_outputs=[]):
+                 save_to_workdir=True, is_bulk_calc=False, extrema_type='maximum', vasp_wrapper=None,
+                 save_other_outputs=None):
         """
         Constructor of the the DFThalfCutoff class
         :param AtomSelfEnPots: list of potcarsetup objects
@@ -57,6 +57,8 @@ class DFThalfCutoff:
         self.save_to_workdir = save_to_workdir
         self.save_eigenval = save_eigenval
         self.save_doscar   = save_doscar
+        if save_other_outputs is None:
+            save_other_outputs = []
         self.save_other_outputs = save_other_outputs
 
 
