@@ -169,7 +169,7 @@ class DFThalfCutoff:
         try:
             rcext, ext_gap, indext = self.get_rext_gap(rc_cutoff_df)
         except Warning:
-            print('No extrema was found! rcext ext_gap and index are set to None.')
+            logging.warning('No extrema was found! rcext ext_gap and index are set to None.')
             rcext = None
             ext_gap = None
             indext = None
@@ -298,7 +298,7 @@ class DFThalfCutoff:
         # Find local maximum
         for i in range(1, len(rc_cutoff_df)-1):
             # Check if the gap is larger than the previous and next gap
-            logging.debug('i: %d, gap: %f, gap_prev: %f, gap_next: %f' % (i, rc_cutoff_df.iloc[i, 1], rc_cutoff_df.iloc[i-1, 1], rc_cutoff_df.iloc[i+1, 1]))
+            logging.debug(f'i: {i}, rc: {rc_cutoff_df.iloc[i, 0]}, gap: {rc_cutoff_df.iloc[i, 1]}, gap_prev: {rc_cutoff_df.iloc[i-1, 1]}, gap_next: {rc_cutoff_df.iloc[i+1, 1]}')
             if rc_cutoff_df.iloc[i, 1] > rc_cutoff_df.iloc[i-1, 1] and rc_cutoff_df.iloc[i, 1] > rc_cutoff_df.iloc[i+1, 1]:
                 logging.debug('Local maximum found at index %d' % i)
                 # If this is the case we return the rc, gap and index of this maximum
