@@ -71,7 +71,9 @@ class DFThalfCutoff:
             print('Starting cutoff optimisation for ' + pot_setup.atomname, flush=True)
             # load dataframe from previous run if it exists
             csvfileloc = pot_setup.workdir + '/' + pot_setup.atomname + '/CutoffOpt.csv'
+            # Check if csv file exists from previous run
             if os.path.isfile(csvfileloc):
+                logging.debug('Loading previous cutoff data from ' + csvfileloc)
                 cutoff_df = pd.read_csv(csvfileloc)
             else:
                 cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
@@ -114,13 +116,20 @@ class DFThalfCutoff:
             self.potcar_command_begin += ' ' + newpotcaroptloc
 
     def single_cutoff_sweep(self, Vs_potsetup, potcarfile, CutFuncPar, unalterpotcars, cutoff_df=None, numdecCut=3):
+        logging.debug('Starting single cutoff sweep')
+        # Set up vasp run folder
         if self.foldervasprun is None or self.run_in_ps_workdir:
+            logging.debug('Setting up vasp run folder')
             self.foldervasprun = Vs_potsetup.workdir + '/' + Vs_potsetup.atomname + '/Vasp_run'
 
+        # Check if folder exists
         if not(os.path.isdir(self.foldervasprun)):
+            logging.debug('Creating vasp run folder')
             os.makedirs(self.foldervasprun)
 
+        # Check if dataframe is given
         if isinstance(cutoff_df,type(None)):
+            logging.debug('Creating new dataframe')
             cutoff_df = pd.DataFrame(columns=['Cutoff', 'Gap'])
 
         # Get cutoff vector
@@ -131,9 +140,11 @@ class DFThalfCutoff:
         for rc in RC:
             # If the current rc value is already present we will skip it
             if cutoff_df['Cutoff'].isin([rc]).any():
+                logging.debug('Skipping rc value: %f as it is already present in the dataframe' % rc)
                 continue
 
             # Run vasp
+            logging.debug('Running vasp for rc: %f' % rc)
             newpotcarfileloc = Vs_potsetup.workdir + '/' +Vs_potsetup.atomname + '/POTCAR_DFThalf' + '/POTCAR_rc_' + str(np.round(rc,numdecCut)) + '_n_' +  str(CutFuncPar['n'])
             self._run_vasp(newpotcarfileloc, unalterpotcars)
             # Calculate gap
@@ -144,6 +155,7 @@ class DFThalfCutoff:
             current_cutoff = pd.DataFrame([[rc,gap]],columns=['Cutoff','Gap'])
             cutoff_df = pd.concat([cutoff_df,current_cutoff], ignore_index=True)
             # Save files
+            logging.debug('Saving vasp output files')
             self.save_vasp_output_files(Vs_potsetup,rc,numdecCut,CutFuncPar)
 
 
