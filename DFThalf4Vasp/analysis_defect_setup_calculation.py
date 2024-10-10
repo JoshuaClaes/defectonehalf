@@ -31,6 +31,7 @@ class Orb_info:
 
 def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: int,
                                orb_info_sc: List[Orb_info], workdir_self_en: str, threshold_defect_atoms: float = 0.005,
+                               efrac_threshold: float = None,
                                decoupled_run: bool = False, EXtype: str = 'ca', typepotcarfile: str = 'lda',
                                cutfuncpar=None,
                                bulk_potcar: str = '../POTCAR_bulk ', typevasprun: str = 'vasp_gam',
@@ -160,6 +161,11 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
             xi_all_groups = np.concatenate((xi_all_groups, [np.zeros(3)]))
             zeta_all_groups = np.concatenate((zeta_all_groups, [zeta[i]]))
             elem_all_groups.append(elem_zeta[i])
+
+    if efrac_threshold is not None:
+        xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups = _apply_efrac_threshold(
+        xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, efrac_threshold
+        )
 
     # Check if the selected number of groups was found
     if set_num_groups is not None:
@@ -535,15 +541,7 @@ def _get_band_spin(def_band):
     else:
         raise ValueError(f"Unexpected spin value: {def_band[1]}")
 
-def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, set_num_groups):
-    # Add xi and zeta contributions and sort by total contribution then take the first set_num_groups
-    total_contributions = np.sum(xi_all_groups, axis=1) + np.sum(zeta_all_groups, axis=1)
-    sorted_indices = np.argsort(total_contributions)[::-1]
-    all_defect_groups = [all_defect_groups[i] for i in sorted_indices[:set_num_groups]]
-    xi_all_groups = xi_all_groups[sorted_indices[:set_num_groups]]
-    zeta_all_groups = zeta_all_groups[sorted_indices[:set_num_groups]]
-    elem_all_groups = [elem_all_groups[i] for i in sorted_indices[:set_num_groups]]
-
+def renormalize_efracs(xi_all_groups, zeta_all_groups, all_defect_groups):
     # Calculate multiplicity for each group
     multiplicity = np.array([len(group) for group in all_defect_groups])[:, np.newaxis]
 
@@ -554,6 +552,20 @@ def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_a
     # Renormalize xi and zeta
     xi_all_groups = xi_all_groups * (0.5 / xi_sum)
     zeta_all_groups = zeta_all_groups * (0.5 / zeta_sum)
+
+    return xi_all_groups, zeta_all_groups
+
+def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, set_num_groups):
+    # Add xi and zeta contributions and sort by total contribution then take the first set_num_groups
+    total_contributions = np.sum(xi_all_groups, axis=1) + np.sum(zeta_all_groups, axis=1)
+    sorted_indices = np.argsort(total_contributions)[::-1]
+    all_defect_groups = [all_defect_groups[i] for i in sorted_indices[:set_num_groups]]
+    xi_all_groups = xi_all_groups[sorted_indices[:set_num_groups]]
+    zeta_all_groups = zeta_all_groups[sorted_indices[:set_num_groups]]
+    elem_all_groups = [elem_all_groups[i] for i in sorted_indices[:set_num_groups]]
+
+    # Renormalize xi and zeta
+    xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups)
 
     # Round xi and zeta to two decimals
     xi_all_groups = np.round(xi_all_groups, 2)
@@ -569,3 +581,18 @@ def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_a
 
     return xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups
 
+def _apply_efrac_threshold(xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, efrac_threshold):
+    logging.warning('Function _filter_defect_groups has not been properly tested yet!')
+    while len(xi_all_groups) > 0:
+        # Check if all xi and zetas in last group are below threshold
+        if np.all(xi_all_groups[-1] < efrac_threshold) and np.all(zeta_all_groups[-1] < efrac_threshold):
+            # Remove last group
+            xi_all_groups = xi_all_groups[:-1]
+            zeta_all_groups = zeta_all_groups[:-1]
+            all_defect_groups = all_defect_groups[:-1]
+            elem_all_groups = elem_all_groups[:-1]
+            xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups)
+        else:
+            break
+
+    return np.array(xi_all_groups), np.array(zeta_all_groups), all_defect_groups, elem_all_groups
