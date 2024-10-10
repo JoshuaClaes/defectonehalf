@@ -591,7 +591,7 @@ def _apply_efrac_threshold(xi_all_groups, zeta_all_groups, all_defect_groups, el
             zeta_all_groups = zeta_all_groups[:-1]
             all_defect_groups = all_defect_groups[:-1]
             elem_all_groups = elem_all_groups[:-1]
-            xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups)
+            xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups, all_defect_groups)
         else:
             break
 
