@@ -553,6 +553,12 @@ def renormalize_efracs(xi_all_groups, zeta_all_groups, all_defect_groups):
     xi_all_groups = xi_all_groups * (0.5 / xi_sum)
     zeta_all_groups = zeta_all_groups * (0.5 / zeta_sum)
 
+    # Round xi and zeta to two decimals
+    xi_all_groups = np.round(xi_all_groups, 2)
+    zeta_all_groups = np.round(zeta_all_groups, 2)
+
+    logging.warning(f'New renormalized xi and zeta values:\nxi: {xi_all_groups}\nzeta: {zeta_all_groups}')
+
     return xi_all_groups, zeta_all_groups
 
 def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, set_num_groups):
@@ -566,15 +572,6 @@ def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_a
 
     # Renormalize xi and zeta
     xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups)
-
-    # Round xi and zeta to two decimals
-    xi_all_groups = np.round(xi_all_groups, 2)
-    zeta_all_groups = np.round(zeta_all_groups, 2)
-
-    # Round xi and zeta to two decimals
-    xi_all_groups = np.round(xi_all_groups, 2)
-    zeta_all_groups = np.round(zeta_all_groups, 2)
-    logging.warning(f'New renormalized xi and zeta values:\nxi: {xi_all_groups}\nzeta: {zeta_all_groups}')
 
     # Add warning that this case has not been properly tested
     logging.warning('This case has not been properly tested and should be checked by the user!')
