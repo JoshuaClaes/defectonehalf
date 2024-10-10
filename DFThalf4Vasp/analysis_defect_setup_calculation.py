@@ -38,7 +38,7 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
                                job_script_header: str = '', job_script_footer: str = '',
                                job_script_name: str = 'job_script.slurm', set_num_groups=None, print_output=True,
-                               incar_loc=None, kpoints_loc=None, potcar_loc_base=None) -> None:
+                               incar_loc=None, kpoints_loc=None, potcar_loc_base=None, dry_run = False) -> None:
     """
     Function to perform analysis of defect setup calculations.
 
@@ -55,6 +55,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     threshold_defect_atoms (float): Threshold for determining defect atoms. Default is 0.005.
     set_num_groups (int): the number of groups you want returned. This is for a second run where you want less
     groups than in the default case.
+    dry_run (bool): if True no calculations will be performed i.e. no potcars will be generated only the analysis is
+    performed. Default is False
 
     # type of DFT-1/2 run
     decoupled_run (bool): if True a decoupled calculation will be setup, if false a conventional calculation will be
@@ -198,48 +200,50 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
         print('\n======================\nInfo zeta\n======================')
         print(f'Elements defect groups:\n{elem_all_groups} \nIndices defect atoms:\n{all_defect_groups} \nzeta\n{zeta_all_groups}')
 
-    #####################
-    # The self energy
-    #####################
-    group_names = []
-    orbitals = []
-    GSorbs = []
-    # These are extra input parameters given at the beginning
-    # EXtype  = 'ca'
-    # potcarfile = 'lda'
+    if not (dry_run):
+        #####################
+        # The self energy
+        #####################
+        group_names = []
+        orbitals = []
+        GSorbs = []
+        # These are extra input parameters given at the beginning
+        # EXtype  = 'ca'
+        # potcarfile = 'lda'
 
-    for i, group in enumerate(all_defect_groups):
-        # group name indexofgroup_element_numberofelement. Index of group is such that all created folders are ordered
-        element = elem_all_groups[i]
-        group_name = str(i + 1) + '_' + element + '_' + str(len(group))
-        group_names.append(group_name)  # Group gets name of element it contains
+        for i, group in enumerate(all_defect_groups):
+            # group name indexofgroup_element_numberofelement. Index of group is such that all created folders are ordered
+            element = elem_all_groups[i]
+            group_name = str(i + 1) + '_' + element + '_' + str(len(group))
+            group_names.append(group_name)  # Group gets name of element it contains
 
-        # Get orbitals and GSorbs which is required for setup_calculation
-        # This is somewhat tricky because this depends from atoms to atoms and on the specific potcar that is being use and
-        # thus the user should supply this information for each atom in the unit cell
+            # Get orbitals and GSorbs which is required for setup_calculation
+            # This is somewhat tricky because this depends from atoms to atoms and on the specific potcar that is being use and
+            # thus the user should supply this information for each atom in the unit cell
 
-        # We loop over all elements until we find a matching element
-        for o, orb in enumerate(orb_info_sc):
-            if element == orb.element:
-                orbitals.append(orb.core_val)
-                GSorbs.append(orb.GSocc)
-                break
-            if o == (len(orb_info_sc) - 1):
-                raise Exception(
-                    f'Some defect atoms are {element} which is an element which is not present in orb_info_sc!')
+            # We loop over all elements until we find a matching element
+            for o, orb in enumerate(orb_info_sc):
+                if element == orb.element:
+                    orbitals.append(orb.core_val)
+                    GSorbs.append(orb.GSocc)
+                    break
+                if o == (len(orb_info_sc) - 1):
+                    raise Exception(
+                        f'Some defect atoms are {element} which is an element which is not present in orb_info_sc!')
 
-    if decoupled_run:
-        _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
-                              GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
-                              typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                              job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
-                              potcar_loc_base=potcar_loc_base)
-    else:
-        _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
-                                GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
-                                typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                                job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
-                                potcar_loc_base=potcar_loc_base)
+
+        if decoupled_run:
+            _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
+                                  GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
+                                  typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                                  job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
+                                  potcar_loc_base=potcar_loc_base)
+        else:
+            _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
+                                    GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
+                                    typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                                    job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
+                                    potcar_loc_base=potcar_loc_base)
 
 
 #################################
