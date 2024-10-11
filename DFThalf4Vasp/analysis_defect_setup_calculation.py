@@ -39,7 +39,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                                save_doscar: bool = False, rb: float = 0.0, rf: float = 4.0, nsteps: List[int] = [9, 11],
                                job_script_header: str = '', job_script_footer: str = '',
                                job_script_name: str = 'job_script.slurm', set_num_groups=None, print_output=True,
-                               incar_loc=None, kpoints_loc=None, potcar_loc_base=None, dry_run = False) -> None:
+                               incar_loc=None, kpoints_loc=None, potcar_loc_base=None, dry_run = False,
+                               fullworkdirpath = False) -> None:
     """
     Function to perform analysis of defect setup calculations.
 
@@ -58,6 +59,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     groups than in the default case.
     dry_run (bool): if True no calculations will be performed i.e. no potcars will be generated only the analysis is
     performed. Default is False
+    efrac_threshold (float): Threshold for electron fraction. Default is None.
+    fullworkdirpath (bool): if True the full path to the workdir will be used. Default is False.
 
     # type of DFT-1/2 run
     decoupled_run (bool): if True a decoupled calculation will be setup, if false a conventional calculation will be
@@ -256,10 +259,10 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
 # HELPER FUNCTIONS
 #################################
 def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
-                          GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
-                          typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer, incar_loc = None, kpoints_loc = None,
-                          potcar_loc_base = None):
+                            GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
+                            typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
+                            job_script_header, job_script_footer, incar_loc = None, kpoints_loc = None,
+                            potcar_loc_base = None, fullworkdirpath = False):
     """
     This function sets up a conventional run for the DFT-1/2 method.
 
@@ -295,7 +298,7 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
     None
     """
     Vs = setup_calculation(group_names, elem_all_groups, orbitals, GSorbs, xi_all_groups, zeta_all_groups,
-                            workdir_self_en, EXtype, typepotcarfile,cutfuncpar)
+                           workdir_self_en, EXtype, typepotcarfile, cutfuncpar, fullworkdirpath = fullworkdirpath)
 
 
     #####################
@@ -402,7 +405,8 @@ def _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_gro
 def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
-                          job_script_header, job_script_footer, incar_loc=None, kpoints_loc=None, potcar_loc_base=None):
+                          job_script_header, job_script_footer, incar_loc=None, kpoints_loc=None, potcar_loc_base=None,
+                          fullworkdirpath = False):
     # Check potcar_loc_base. If this is None set it to ../../ such that potcar files can be shared between the xi and
     # zeta calculations
     if potcar_loc_base is None:
@@ -419,7 +423,7 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_xi,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
                           job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
-                            potcar_loc_base=potcar_loc_base)
+                            potcar_loc_base=potcar_loc_base, fullworkdirpath = fullworkdirpath)
 
     # zeta
     workdir = workdir_self_en + '/zeta'
@@ -431,7 +435,7 @@ def _setup_decoupled_runs(folder, workdir_self_en, xi_all_groups, zeta_all_group
                           GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands_zeta,
                           typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
                           job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
-                            potcar_loc_base=potcar_loc_base)
+                            potcar_loc_base=potcar_loc_base, fullworkdirpath = fullworkdirpath)
 
 
 

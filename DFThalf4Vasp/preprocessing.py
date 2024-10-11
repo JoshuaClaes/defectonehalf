@@ -68,7 +68,7 @@ def full_band_character_analysis(folder, iocc, iunocc, atominds, spin, print_ban
     return Xi, Zeta
 
 def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXtype, potcarfile, cutfuncpar,
-                      vaspfiles=None):
+                      vaspfiles=None, fullworkdirpath=False):
     """
     This function setups a folder to prefrom a cutoff sweep from DFThalfCutoff
     :param atomnames: list with atom labels
@@ -83,6 +83,7 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
     :param potcarfile: string with potcar file type 'lda' or 'pbe'
     :param cutfuncpar:  dict with cutoff function parameters
     :param vaspfiles: list of vasp files location which will be copied to the vasp_run file
+    :param fullworkdirpath: if True workdir is the full path to the workdir. If False workdir is the name of the workdir
     :return:
     """
     # Set vaspfiles to empty list if None
@@ -92,7 +93,8 @@ def setup_calculation(atomnames, atoms, orbitals, GSorbs, Xi, Zeta, workdir, EXt
     Vs_list = [] # list of all self energies
     for i, atom in enumerate(atoms):
         # Calc Vs
-        Vs = ps.PotcarSetup(workdir, atomnames[i], atom, orbitals[i], GSorbs[i], ExCorrAE=EXtype)
+        Vs = ps.PotcarSetup(workdir, atomnames[i], atom, orbitals[i], GSorbs[i], ExCorrAE=EXtype,
+                            isfullpath=fullworkdirpath)
         Vs.calc_self_En_pot(Xi[i], Zeta[i])
 
         # Make potcars
