@@ -561,7 +561,7 @@ def renormalize_efracs(xi_all_groups, zeta_all_groups, all_defect_groups):
     xi_all_groups = np.round(xi_all_groups, 2)
     zeta_all_groups = np.round(zeta_all_groups, 2)
 
-    logging.warning(f'New renormalized xi and zeta values:\nxi: {xi_all_groups}\nzeta: {zeta_all_groups}')
+    logging.debug(f'New renormalized xi and zeta values:\nxi: {xi_all_groups}\nzeta: {zeta_all_groups}')
 
     return xi_all_groups, zeta_all_groups
 
@@ -575,25 +575,23 @@ def _select_top_groups(xi_all_groups, zeta_all_groups, all_defect_groups, elem_a
     elem_all_groups = [elem_all_groups[i] for i in sorted_indices[:set_num_groups]]
 
     # Renormalize xi and zeta
-    xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups)
+    xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups, all_defect_groups)
 
     # Add warning that this case has not been properly tested
-    logging.warning('This case has not been properly tested and should be checked by the user!')
+    logging.warning('_select_top_groups has not been properly tested xi and zeta values should be checked by the user!')
 
     return xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups
 
 def _apply_efrac_threshold(xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, efrac_threshold):
-    logging.warning('Function _filter_defect_groups has not been properly tested yet!')
+    logging.warning('Function _apply_efrac_threshold has not been properly tested yet!')
     while len(xi_all_groups) > 0:
         # Check if all xi and zetas in last group are below threshold
         if np.all(xi_all_groups[-1] < efrac_threshold) and np.all(zeta_all_groups[-1] < efrac_threshold):
-            # Remove last group
-            xi_all_groups = xi_all_groups[:-1]
-            zeta_all_groups = zeta_all_groups[:-1]
-            all_defect_groups = all_defect_groups[:-1]
-            elem_all_groups = elem_all_groups[:-1]
-            xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups, all_defect_groups)
+            # Select all but one group from xi and zeta
+            logging.debug(f'Xi and zeta values found below efrac_threshold {efrac_threshold}. Current number of groups {len(xi_all_groups)}')
+            xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups = _select_top_groups(
+                xi_all_groups, zeta_all_groups, all_defect_groups, elem_all_groups, len(xi_all_groups) - 1)
         else:
             break
-
+    logging.debug(f'New xi and zeta values are {xi_all_groups}, {zeta_all_groups}')
     return np.array(xi_all_groups), np.array(zeta_all_groups), all_defect_groups, elem_all_groups
