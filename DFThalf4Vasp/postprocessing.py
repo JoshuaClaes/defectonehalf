@@ -172,7 +172,7 @@ def _find_extrema_gap(rc_cutoff_df):
         return rcmin, min_gap, indmin
 
 
-def find_local_max_gap(self, rc_cutoff_df):
+def find_local_max_gap(rc_cutoff_df):
     """
     Finds the local maximum gap in rc_cutoff_df and returns the rc, gap and index of this maximum. This is done by
     first sorting the dataframe. Then the function will loop over the dataframe and check if the gap is larger than
