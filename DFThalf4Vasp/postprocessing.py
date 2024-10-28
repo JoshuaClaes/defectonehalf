@@ -4,7 +4,6 @@ import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from DFThalf4Vasp.DFThalfCutoff import _find_local_max_gap
 
 def get_bandE(folder,cuts,n,bandinds):
     """
@@ -136,7 +135,7 @@ def find_extrema_gap(rc_cutoff_df,extrema_type='extrema'):
         ext_gap = rc_cutoff_df.iloc[indext, 1]
         return rcext, ext_gap, indext
     elif extrema_type == 'local maximum' or extrema_type == 'local max' or extrema_type == 'localmaximum':
-        return _find_local_max_gap(rc_cutoff_df)
+        return find_local_max_gap(rc_cutoff_df)
     else:
         print('Unknown extrema type was given! Extrema type extrema was used!')
         return _find_extrema_gap(rc_cutoff_df)
