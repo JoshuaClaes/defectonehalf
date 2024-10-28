@@ -98,11 +98,7 @@ def find_optimal_cutoff(folder, atomnames=None, print_output=False, cutoff_filen
     :return: list of rc, list of maximum gaps, list of all dataframes
     """
     if atomnames is None:
-        # List all subfolders in the given folder
-        subfolders = [f.name for f in os.scandir(folder) if f.is_dir()]
-        # Filter subfolders to match the format <integer>_<symbol_atom>_<other_integer>
-        pattern = re.compile(r'^\d+_[A-Za-z]+_\d+$')
-        atomnames = sorted([name for name in subfolders if pattern.match(name)], key=lambda x: int(x.split('_')[0]))
+        atomnames = get_atom_names(folder)
 
     rc_list = []
     max_gap_list = []
@@ -200,3 +196,11 @@ def find_local_max_gap(rc_cutoff_df):
     rcmax = rc_cutoff_df.iloc[indmax, 0]
     max_gap = rc_cutoff_df.iloc[indmax, 1]
     return rcmax, max_gap, indmax
+
+def get_atom_names(folder):
+    # List all subfolders in the given folder
+    subfolders = [f.name for f in os.scandir(folder) if f.is_dir()]
+    # Filter subfolders to match the format <integer>_<symbol_atom>_<other_integer>
+    pattern = re.compile(r'^\d+_[A-Za-z]+_\d+$')
+    atomnames = sorted([name for name in subfolders if pattern.match(name)], key=lambda x: int(x.split('_')[0]))
+    return atomnames
