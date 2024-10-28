@@ -237,7 +237,7 @@ class DFThalfCutoff:
             rcext = rc_cutoff_df.iloc[indext, 0]
             ext_gap = rc_cutoff_df.iloc[indext, 1]
             return rcext, ext_gap, indext
-        elif self.extrema_type == 'local max' or self.extrema_type == 'local maximum':
+        elif self.extrema_type == 'local max' or self.extrema_type == 'local maximum' or self.extrema_type == 'localmaximum':
             return self._find_local_max_gap(rc_cutoff_df)
         elif self.extrema_type == 'minimum' or self.extrema_type == 'min':
             indext = rc_cutoff_df.iloc[:, 1].idxmin()
@@ -247,7 +247,7 @@ class DFThalfCutoff:
         else:
             raise Warning('Unknown extrema_type was given!\nextrema_type was set to local max!')
             self.extrema_type = 'local max'
-            return self._find_extrema_gap(rc_cutoff_df)
+            return self._find_local_max_gap(rc_cutoff_df)
 
 
     def _find_extrema_gap(self, rc_cutoff_df):
