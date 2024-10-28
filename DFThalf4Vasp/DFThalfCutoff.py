@@ -4,6 +4,8 @@ import shutil
 import numpy as np
 import pandas as pd
 from DFThalf4Vasp import VaspWrapperSimple
+from DFThalf4Vasp.postprocessing import find_local_max_gap
+
 
 class DFThalfCutoff:
     def __init__(self, AtomSelfEnPots, PotcarLoc, occband, unoccband, typevasprun='vasp_std',
@@ -283,31 +285,5 @@ class DFThalfCutoff:
             return rcmin, min_gap, indmin
 
     def _find_local_max_gap(self, rc_cutoff_df):
-        """
-        Finds the local maximum gap in rc_cutoff_df and returns the rc, gap and index of this maximum. This is done by
-        first sorting the dataframe. Then the function will loop over the dataframe and check if the gap is larger than
-        the previous and next gap. If this is the case the function will return the rc, gap and index of this maximum.
-        If no local maximum is found the function will return the global maximum which should be located at the largest
-        rc value.
-        :param rc_cutoff_df:
-        :return:
-        """
-        # Sort dataframe
-        rc_cutoff_df = rc_cutoff_df.sort_values('Cutoff', axis=0)
-        rc_cutoff_df = rc_cutoff_df.reset_index(drop=True) # reset index to make sure we can loop over the dataframe
-        # Find local maximum
-        for i in range(1, len(rc_cutoff_df)-1):
-            # Check if the gap is larger than the previous and next gap
-            logging.debug(f'i: {i}, rc: {rc_cutoff_df.iloc[i, 0]}, gap: {rc_cutoff_df.iloc[i, 1]}, gap_prev: {rc_cutoff_df.iloc[i-1, 1]}, gap_next: {rc_cutoff_df.iloc[i+1, 1]}')
-            if rc_cutoff_df.iloc[i, 1] > rc_cutoff_df.iloc[i-1, 1] and rc_cutoff_df.iloc[i, 1] > rc_cutoff_df.iloc[i+1, 1]:
-                logging.debug('Local maximum found at index %d' % i)
-                # If this is the case we return the rc, gap and index of this maximum
-                return rc_cutoff_df.iloc[i, 0], rc_cutoff_df.iloc[i, 1], i
-
-        # If no local maximum is found we return the global maximum
-        logging.debug('No local maximum found, returning global maximum')
-        indmax = rc_cutoff_df.iloc[:, 1].idxmax()
-        rcmax = rc_cutoff_df.iloc[indmax, 0]
-        max_gap = rc_cutoff_df.iloc[indmax, 1]
-        return rcmax, max_gap, indmax
+        return find_local_max_gap(rc_cutoff_df)
 
