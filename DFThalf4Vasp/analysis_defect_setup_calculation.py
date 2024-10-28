@@ -246,13 +246,13 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
                                   GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands, vbm_ind, cbm_ind,
                                   typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
                                   job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
-                                  potcar_loc_base=potcar_loc_base)
+                                  potcar_loc_base=potcar_loc_base, fullworkdirpath=fullworkdirpath)
         else:
             _setup_conventional_run(folder, workdir_self_en, xi_all_groups, zeta_all_groups, group_names, elem_all_groups, orbitals,
                                     GSorbs, EXtype, typepotcarfile, cutfuncpar, all_defect_groups, def_bands,
                                     typevasprun, bulk_potcar, save_eigenval, save_doscar, rb, rf, nsteps, job_script_name,
                                     job_script_header, job_script_footer, incar_loc=incar_loc, kpoints_loc=kpoints_loc,
-                                    potcar_loc_base=potcar_loc_base)
+                                    potcar_loc_base=potcar_loc_base, fullworkdirpath=fullworkdirpath)
 
 
 #################################
