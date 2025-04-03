@@ -202,6 +202,13 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     logging.debug(f'Sum of removed electron fractions:\nxi:\t{xi_sum}\nzeta:\t{zeta_sum}')
     if np.abs(0.5-xi_sum) > 0.05 or np.abs(0.5-zeta_sum) > 0.05:
         logging.warning(f'Electron fraction of xi or zeta deviates significantly(more than 0.05) from 0.5.\nCheck your output carefully!')
+        # Try to renormalize xi and zeta
+        logging.warning('Renormalizing xi and zeta')
+        xi_all_groups, zeta_all_groups = renormalize_efracs(xi_all_groups, zeta_all_groups,all_defect_groups)
+        xi_sum = np.sum(xi_all_groups * multiplicity)
+        zeta_sum = np.sum(zeta_all_groups * multiplicity)
+        logging.warning(f'New sum of removed electron fractions:\nxi:\t{xi_sum}\nzeta:\t{zeta_sum}')
+
 
     if print_output:
         print('======================\nInfo xi\n======================')
