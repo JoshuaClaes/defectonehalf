@@ -10,16 +10,22 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
     """
     A vasp wrapper which uses the ASE frame library
     """
-    def __init__(self):
+    def __init__(self, atoms=None):
         super().__init__()
+        # Set ase atoms object if given
+        self.atoms = atoms
 
     def run_vasp(self, foldervasprun, typevasprun):
         # Go vasp run directory
         oldpath = os.getcwd()
         os.chdir(foldervasprun)
 
-        # Run vasp
-        if typevasprun == 'vasp_std' or typevasprun == 'std':
+        # Run vasp with calculator if given
+        if self.atoms is not None and self.atoms.calc is not None:
+            # Use the ASE calculator
+            self.atoms.get_potential_energy()
+        # otherwise follow standard behaviour
+        elif typevasprun == 'vasp_std' or typevasprun == 'std':
             os.system('srun vasp_std >> vasp.out')
         elif typevasprun == 'vasp_gam' or typevasprun == 'gam':
             os.system('srun vasp_gam >> vasp.out')
