@@ -21,6 +21,6 @@ If you use the decoupled method implemented in this package, please cite our wor
 [Phys. Rev. B 108, 125306 (2023)](https://doi.org/10.1103/PhysRevB.108.125306)
 
 ## License
-For open source projects, say how it is licensed.
+Licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
