@@ -1,4 +1,4 @@
-# DFThalf4VASP
+# defectonehalf
 A pythonpackage for doing [DFT-1/2](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.78.125116) calculations with VASP.
 
 ## Literature
@@ -10,12 +10,12 @@ along with these works on defects to fimiliarize with the theory.\
 [Phys. Rev. B **108**, 125306 (2023)](https://doi.org/10.1103/PhysRevB.108.125306) (our work)
 
 ## Features
-DFThalf4VASP offers a variety of pre- and post-processing procedures tailored for the DFT-1/2 method, focusing on defect calculations with VASP.
+defectonehalf offers a variety of pre- and post-processing procedures tailored for the DFT-1/2 method, focusing on defect calculations with VASP.
 
 ## Roadmap
 The package is currently in soft release, meaning it's functional but not yet fully polished. The output may not always be easy to follow.
 
-## Citing DFThalf4VASP
+## Citing defectonehalf
 If you use the decoupled method implemented in this package, please cite our work:
 
 [Phys. Rev. B 108, 125306 (2023)](https://doi.org/10.1103/PhysRevB.108.125306)
