@@ -1,3 +1,4 @@
+import logging
 import os
 import fileinput
 import numpy as np
@@ -109,6 +110,9 @@ class VaspWrapperAse(VaspWrapper.VaspWrapper):
         # calculate gap
         if kpoints[0] is None or kpoints[0] == 'all':
             # get energies for all kpoints
+            logging.debug('Calculating indirect gap')
+            # log input
+            logging.debug(f'Calculating gap between bands {bands} and spins {spins}')
             en_low  = bs.energies[spins[0],:,bands[0]]
             en_high = bs.energies[spins[1],:,bands[1]]
             gap = np.min(en_high) - np.max(en_low) # calculate inderect gap between bands
