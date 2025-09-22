@@ -6,7 +6,7 @@ import pymatgen.io.vasp as pmg
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Poscar
 
-import DFThalf4Vasp.potcarsetup as ps
+import defectonehalf.potcarsetup as ps
 
 def print_band_characters(bandind, atomind, Peign, structure, kp=0):
     if not (isinstance(atomind, list)):

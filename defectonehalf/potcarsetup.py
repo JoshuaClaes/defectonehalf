@@ -2,16 +2,16 @@ import numpy as np
 import os
 import json
 import fortranformat as ff
-import DFThalf4Vasp.AtomWrapper as AtomWrapper
-import DFThalf4Vasp.orbital as orbital
-import DFThalf4Vasp.potcarsetup
-from DFThalf4Vasp.PotcarWrapper import find_kmax, read_potcar_file
+import defectonehalf.AtomWrapper as AtomWrapper
+import defectonehalf.orbital as orbital
+import defectonehalf.potcarsetup
+from defectonehalf.PotcarWrapper import find_kmax, read_potcar_file
 
 class PotcarSetup:
 
     def __init__(self,workdir,atomname,atom,orb_structure,GSorbs,ExCorrAE = 'ca' , isfullpath=False, typeCutfunc='DFT-1/2'):
         # read config file
-        path = os.path.dirname(DFThalf4Vasp.__file__)
+        path = os.path.dirname(defectonehalf.__file__)
         with open(path + '/potcarsetupconfig.json') as json_file:
             config = json.load(json_file)
             self.potdir = config['potdir']

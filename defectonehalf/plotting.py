@@ -1,4 +1,4 @@
-from DFThalf4Vasp.postprocessing import find_optimal_cutoff, get_atom_names
+from defectonehalf.postprocessing import find_optimal_cutoff, get_atom_names
 import matplotlib.pyplot as plt
 
 def plot_cutoff_sweep(df_cutsweep=None, ax = None, folder=None, atomnames=None,

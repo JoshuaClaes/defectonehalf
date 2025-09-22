@@ -1,7 +1,7 @@
 import os
 import pickle
-import DFThalf4Vasp.DFThalfCutoff as Cutoff
-from DFThalf4Vasp import VaspWrapperAse
+import defectonehalf.DFThalfCutoff as Cutoff
+from defectonehalf import VaspWrapperAse
 
 ##################################################
 # load potcar setup objects

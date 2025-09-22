@@ -3,8 +3,8 @@ import os
 import shutil
 import numpy as np
 import pandas as pd
-from DFThalf4Vasp import VaspWrapperSimple
-from DFThalf4Vasp.postprocessing import find_local_max_gap
+from defectonehalf import VaspWrapperSimple
+from defectonehalf.postprocessing import find_local_max_gap
 
 
 class DFThalfCutoff:

@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from DFThalf4Vasp import VaspWrapper
+from defectonehalf import VaspWrapper
 
 class VaspWrapperSimple(VaspWrapper.VaspWrapper):
     """

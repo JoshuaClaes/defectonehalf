@@ -6,12 +6,12 @@ import numpy as np
 import pymatgen.io.vasp as pmg
 from pymatgen.core import Structure
 from pymatgen.electronic_structure.core import Spin
-from DFThalf4Vasp.preprocessing import get_largest_contributors, calc_electron_fraction
-from DFThalf4Vasp.preprocessing import setup_calculation
-from DFThalf4Vasp.preprocessing import make_defect_poscar
-from DFThalf4Vasp.DFThalfCutoff import DFThalfCutoff
-import DFThalf4Vasp.potcarsetup as ps
-from DFThalf4Vasp.orbital import Orbital
+from defectonehalf.preprocessing import get_largest_contributors, calc_electron_fraction
+from defectonehalf.preprocessing import setup_calculation
+from defectonehalf.preprocessing import make_defect_poscar
+from defectonehalf.DFThalfCutoff import DFThalfCutoff
+import defectonehalf.potcarsetup as ps
+from defectonehalf.orbital import Orbital
 
 class Orb_info:
     def __init__(self, element, core_val_orbs, GSocc):

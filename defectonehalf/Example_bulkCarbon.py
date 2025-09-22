@@ -1,5 +1,5 @@
-import DFThalf4Vasp.potcarsetup as ps
-import DFThalf4Vasp.orbital as orbital
+import defectonehalf.potcarsetup as ps
+import defectonehalf.orbital as orbital
 import numpy as np
 import pickle
 

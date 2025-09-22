@@ -5,7 +5,7 @@ import numpy as np
 from ase.calculators.vasp import Vasp
 from ase.dft.bandgap import bandgap
 
-from DFThalf4Vasp import VaspWrapper
+from defectonehalf import VaspWrapper
 
 class VaspWrapperAse(VaspWrapper.VaspWrapper):
     """

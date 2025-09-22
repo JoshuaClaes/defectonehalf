@@ -1,7 +1,7 @@
 import pymatgen.io.vasp as pmg
 from pymatgen.core import Structure
 from pymatgen.electronic_structure.core import Spin
-from DFThalf4Vasp.preprocessing import print_band_characters, calc_electron_fraction
+from defectonehalf.preprocessing import print_band_characters, calc_electron_fraction
 
 folder = '/mnt/extradata/VASP_calculations/LDA/NVcenter/ZPL/NV0/excited_states/Up/scf'
 iocc      = 1021
