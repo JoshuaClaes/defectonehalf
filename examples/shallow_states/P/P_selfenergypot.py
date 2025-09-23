@@ -13,7 +13,7 @@ import defectonehalf.orbital as orbital
 from defectonehalf.preprocessing import setup_calculation
 
 # General settings
-workdir = './P_selfenergypot'  # Folder where all files will be stored. If it does not exist it will be created.
+workdir = './cutoff_opt'  # Folder where all files will be stored. If it does not exist it will be created.
 
 # Define atom and orbitals
 atomnames = ['Phosporus']   # Just a label for the atom. Can be anything.
