@@ -7,7 +7,8 @@ Please consider reading the original DFT-1/2 papers \
 [AIP Advances 1 September 2011; 1 (3): 032119 (2011)](https://doi.org/10.1063/1.3624562)\
 along with these works on defects to fimiliarize with the theory.\
 [Phys. Rev. B **96**, 075145 (2017)](https://doi.org/10.1103/PhysRevB.96.075145) \
-[Phys. Rev. B **108**, 125306 (2023)](https://doi.org/10.1103/PhysRevB.108.125306) (our work)
+[Phys. Rev. B **108**, 125306 (2023)](https://doi.org/10.1103/PhysRevB.108.125306) (our work)\
+Also check out the [minushalf package](https://github.com/gmsn-ita/minushalf)
 
 ## Features
 defectonehalf offers a variety of pre- and post-processing procedures tailored for the DFT-1/2 method, focusing on defect calculations with VASP.
