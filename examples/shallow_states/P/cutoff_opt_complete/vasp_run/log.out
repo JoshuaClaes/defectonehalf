@@ -1,0 +1,134 @@
+Starting cutoff optimisation for Phosporus
+/user/antwerpen/207/vsc20744/pythonpackages/dfthalf4vasp/DFThalf4Vasp/PotcarWrapper.py:50: FutureWarning: The 'delim_whitespace' keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep='\s+'`` instead
+  potcar = pd.read_csv(file, nrows=nrows, delim_whitespace=True, skiprows=skiprows, header=None)
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+/apps/antwerpen/zen2/rocky8/ASE/3.23.0-gfbf-2024a/lib/python3.12/site-packages/ase/calculators/vasp/vasp.py:1006: UserWarning: Magnetic moment data not written in OUTCAR (LORBIT<10), setting magnetic_moments to zero.
+Set LORBIT>=10 to get information on magnetic moments
+  warn('Magnetic moment data not written in OUTCAR (LORBIT<10),'
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_0.0_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_0.5_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_1.0_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_1.5_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_2.0_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_2.5_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_3.0_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_3.5_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_4.0_n_8
+Rc:  0.0  Gap:  0.0418
+/user/antwerpen/207/vsc20744/pythonpackages/dfthalf4vasp/DFThalf4Vasp/DFThalfCutoff.py:158: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  cutoff_df = pd.concat([cutoff_df,current_cutoff], ignore_index=True)
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  0.5  Gap:  0.0422
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  1.0  Gap:  0.0456
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  1.5  Gap:  0.0536
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  2.0  Gap:  0.0597
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  2.5  Gap:  0.0552
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  3.0  Gap:  0.0457
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  3.5  Gap:  0.0378
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  4.0  Gap:  0.0343
+Current extreme gap for  Phosporus  is  0.0597 eV and was found at rc 2.0  a0
+/user/antwerpen/207/vsc20744/pythonpackages/dfthalf4vasp/DFThalf4Vasp/PotcarWrapper.py:50: FutureWarning: The 'delim_whitespace' keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep='\s+'`` instead
+  potcar = pd.read_csv(file, nrows=nrows, delim_whitespace=True, skiprows=skiprows, header=None)
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+/apps/antwerpen/zen2/rocky8/ASE/3.23.0-gfbf-2024a/lib/python3.12/site-packages/ase/calculators/vasp/vasp.py:1006: UserWarning: Magnetic moment data not written in OUTCAR (LORBIT<10), setting magnetic_moments to zero.
+Set LORBIT>=10 to get information on magnetic moments
+  warn('Magnetic moment data not written in OUTCAR (LORBIT<10),'
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_1.6_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_1.7_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_1.8_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_1.9_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_2.1_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_2.2_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_2.3_n_8
+..//Phosporus/POTCAR_DFThalf/POTCAR_rc_2.4_n_8
+Rc:  1.6  Gap:  0.0555
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  1.7  Gap:  0.0571
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  1.8  Gap:  0.0584
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  1.9  Gap:  0.0593
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  2.1  Gap:  0.0596
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  2.2  Gap:  0.0591
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  2.3  Gap:  0.0581
+INFO: Starting simulation with sc_size = 4
+INFO: Using default logic to select VASP binary: srun vasp_gam >> vasp.out
+INFO: Step 1: Running VASP with INCAR1
+INFO: Step 2: Running VASP with INCAR2
+INFO: Simulation completed.
+Rc:  2.4  Gap:  0.0567
+Extreme gap for  Phosporus  is  0.0597 eV and was found at rc 2.0  a0
