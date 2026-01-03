@@ -1,8 +1,9 @@
 from defectonehalf.postprocessing import find_optimal_cutoff, get_atom_names
 import matplotlib.pyplot as plt
 
-def plot_cutoff_sweep(df_cutsweep=None, ax = None, folder=None, atomnames=None,
-                      labels=None, colors=None, title=None, cutoff_filename='CutoffOpt.csv'):
+def plot_cutoff_sweep(df_cutsweep=None, ax=None, folder=None, atomnames=None,
+                      labels=None, colors=None, title=None, cutoff_filename='CutoffOpt.csv',
+                      interpolation='line'):
 
     if atomnames is None and folder is not None:
         atomnames = get_atom_names(folder)
