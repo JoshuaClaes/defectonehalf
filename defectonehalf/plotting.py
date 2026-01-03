@@ -21,7 +21,27 @@ def plot_cutoff_sweep(df_cutsweep=None, ax = None, folder=None, atomnames=None,
         if colors is not(None):
             color = colors[i]
         df = df.sort_values('Cutoff',axis=0)
-        ax.plot(df.iloc[:,0], df.iloc[:,1], 'o-', label=labels[i], color=color)
+        x = df.iloc[:, 0].to_numpy()
+        y = df.iloc[:, 1].to_numpy()
+
+        # remove duplicate x-values keeping first occurrence
+        uniq_x, uniq_idx = np.unique(x, return_index=True)
+        uniq_y = y[uniq_idx]
+        if interpolation == 'spline' and uniq_x.size >= 4:
+            # Create the spline with degree 3 (cubic)
+            spline = make_interp_spline(uniq_x, uniq_y, k=3)
+
+            # Create a smooth X axis with 200 points
+            xi = np.linspace(uniq_x.min(), uniq_x.max(), 1001)
+            yi = spline(xi)
+
+            # Plot the smooth line and the original points as markers
+            ax.plot(xi, yi, '-', label=label[i], color=color)
+            ax.plot(uniq_x, uniq_y, 'o', color=color)
+
+        else:
+            # Fallback: Just connect the dots with straight lines
+            ax.plot(uniq_x, uniq_y, 'o-', label=label[i], color=color)
 
     xlim = [df_cutsweep[0].iloc[:,0].min(),df_cutsweep[0].iloc[:,0].max()]
     ax.set_title(title, fontsize=20);
