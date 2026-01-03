@@ -36,12 +36,12 @@ def plot_cutoff_sweep(df_cutsweep=None, ax = None, folder=None, atomnames=None,
             yi = spline(xi)
 
             # Plot the smooth line and the original points as markers
-            ax.plot(xi, yi, '-', label=label[i], color=color)
+            ax.plot(xi, yi, '-', label=labels[i], color=color)
             ax.plot(uniq_x, uniq_y, 'o', color=color)
 
         else:
             # Fallback: Just connect the dots with straight lines
-            ax.plot(uniq_x, uniq_y, 'o-', label=label[i], color=color)
+            ax.plot(uniq_x, uniq_y, 'o-', label=labels[i], color=color)
 
     xlim = [df_cutsweep[0].iloc[:,0].min(),df_cutsweep[0].iloc[:,0].max()]
     ax.set_title(title, fontsize=20);
