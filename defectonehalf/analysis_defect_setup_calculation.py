@@ -31,7 +31,7 @@ class Orb_info:
 
 def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: int,
                                orb_info_sc: List[Orb_info], workdir_self_en: str, threshold_defect_atoms: float = 0.005,
-                               efrac_threshold: float = None,
+                               efrac_threshold: float = None, group_sym_tol=0.001,
                                decoupled_run: bool = False, EXtype: str = 'ca', typepotcarfile: str = 'lda',
                                cutfuncpar=None,
                                bulk_potcar: str = '../POTCAR_bulk ', typevasprun: str = 'vasp_gam',
@@ -488,7 +488,7 @@ def _find_def_atoms_from_groups(cag_s, ocg_s, n=2):
 
 
 def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=0.005, min_threshold=1e-5,
-                    set_num_groups=None):
+                    set_num_groups=None, group_sym_tol=0.001):
     """
     Finds the defect atoms contibuting to a defect bands from the spd projection of each atom on each band.
     projected_eign: the spd projection of each atoms for each band. Obtained from Vasprun object property .projected_eigenvalues
@@ -499,7 +499,8 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
     groups than in the default case.
     """
     # Get contribution for default parameters
-    cag, ocg, eg = get_largest_contributors(projected_eign, band_ind, band_spin, structure, threshold=threshold_int)
+    cag, ocg, eg = get_largest_contributors(projected_eign, band_ind, band_spin, structure, threshold=threshold_int,
+                                            group_sym_tol=group_sym_tol)
     # Find defect groups and electron fractions
     efrac, num_groups = _find_def_atoms_from_groups(cag, ocg)
     # Check results if all groups where found. This is done by requiring that the number of groups found by
