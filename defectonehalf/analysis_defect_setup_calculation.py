@@ -127,7 +127,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     logging.debug('Finding defect groups for xi')
     defect_groups_xi, xi, elem_xi = _find_def_atoms(projected_eign, band_ind, band_spin, structure,
                                                     threshold_int=threshold_defect_atoms,
-                                                    set_num_groups=set_num_groups)
+                                                    set_num_groups=set_num_groups,
+                                                    group_sym_tol=group_sym_tol)
 
     # Unoccupied bands
     band_ind = def_bands[1][0]
@@ -139,7 +140,8 @@ def analysis_defect_setup_calc(folder: str, def_bands, vbm_ind: int, cbm_ind: in
     logging.debug('Finding defect groups for zeta')
     defect_groups_zeta, zeta, elem_zeta = _find_def_atoms(projected_eign, band_ind, band_spin, structure,
                                                           threshold_int=threshold_defect_atoms,
-                                                          set_num_groups=set_num_groups)
+                                                          set_num_groups=set_num_groups,
+                                                          group_sym_tol=group_sym_tol)
 
     # We should now combine the groups of xi and zeta. Since there not necessarily the same
     all_defect_groups = defect_groups_xi.copy()
@@ -539,11 +541,13 @@ def _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_in
                 raise Exception('Threshold find_def_atoms reached minimum threshold!')
             else:
                 return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=min_threshold,
-                                       min_threshold=min_threshold, set_num_groups=set_num_groups)
+                                       min_threshold=min_threshold, set_num_groups=set_num_groups,
+                                       group_sym_tol=group_sym_tol)
         else:
             # Do a run with new threshold
             return _find_def_atoms(projected_eign, band_ind, band_spin, structure, threshold_int=new_threshold,
-                                   min_threshold=min_threshold, set_num_groups=set_num_groups)
+                                   min_threshold=min_threshold, set_num_groups=set_num_groups,
+                                   group_sym_tol=group_sym_tol)
 
 def _get_band_spin(def_band):
     if def_band[1] == 'up':
